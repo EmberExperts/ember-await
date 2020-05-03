@@ -1,5 +1,7 @@
 # Installation
 
+You can use ember-cli to install and addon:
+
 ```text
 ember install ember-await
 ```

@@ -1,6 +1,13 @@
 # ember-await
 
-\[Short description of the addon.\]
+Ember component for declarative promise resolution. Makes it easy to handle every state of the asynchronous process, without assumptions about the shape of your data or the type of request. Use it with fetch, Axios or other data fetching libraries, even GraphQL.
+
+- Expose states components for easier promise states handling
+- Provides convenient metadata (`isPending`, `isFulfilled` etc.)
+- Provides `cancel` and `reload` actions
+- Supports non-async data
+- Highly inspired by [react-async](react-async.com)
+- Takes advantage of [ember-concurrency](http://ember-concurrency.com/) to manage promise state (aborting, cancellation, etc.)
 
 ## Documentation
 
