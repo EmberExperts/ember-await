@@ -8,6 +8,10 @@
 
 ## API
 
+ - [Interfaces](api/interfaces.md)
+ - [Arguments](api/arguments.md)
+ - [Yielded properties](api/yielded-properties.md)
+
 ## Misc
 
 - [Contributing](../CONTRIBUTING.md)
