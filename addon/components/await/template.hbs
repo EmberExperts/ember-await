@@ -1,0 +1,7 @@
+{{#if this.isRunning}}
+  {{yield to="loading"}}
+{{else if this.isError}}
+  {{yield this.error to="error"}}
+{{else}}
+  {{yield this.value}}
+{{/if}}
