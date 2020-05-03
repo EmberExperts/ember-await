@@ -47,13 +47,20 @@ jobs:
 
     # we recommend new addons test the current and previous LTS
     # as well as latest stable release (bonus points to beta/canary)
-    - env: EMBER_TRY_SCENARIO=ember-lts-3.12
-    - env: EMBER_TRY_SCENARIO=ember-lts-3.16
-    - env: EMBER_TRY_SCENARIO=ember-release
-    - env: EMBER_TRY_SCENARIO=ember-beta
-    - env: EMBER_TRY_SCENARIO=ember-canary
-    - env: EMBER_TRY_SCENARIO=ember-default-with-jquery
-    - env: EMBER_TRY_SCENARIO=ember-classic
+    - name: "ember-lts-3.12"
+      env: EMBER_TRY_SCENARIO=ember-lts-3.12
+    - name: "ember-lts-3.16"
+      env: EMBER_TRY_SCENARIO=ember-lts-3.16
+    - name: "ember-release"
+      env: EMBER_TRY_SCENARIO=ember-release
+    - name: "ember-beta"
+      env: EMBER_TRY_SCENARIO=ember-beta
+    - name: "ember-canary"
+      env: EMBER_TRY_SCENARIO=ember-canary
+    - name: "ember-default-with-jquery"
+      env: EMBER_TRY_SCENARIO=ember-default-with-jquery
+    - name: "ember-classic"
+      env: EMBER_TRY_SCENARIO=ember-classic
 
 script:
   - node_modules/.bin/ember try:one $EMBER_TRY_SCENARIO
