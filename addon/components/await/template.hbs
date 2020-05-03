@@ -1,9 +1,12 @@
 {{yield (hash
   data=this.currentState.value
   error=this.currentState.error
+
   isPending=this.isPending
   isFulfilled=this.isFulfilled
   isRejected=this.currentState.isError
+  isSettled=this.currentState.isFinished
+
   counter=this.promiseTask.performCount
   task=this.currentState
   reload=this.reload
