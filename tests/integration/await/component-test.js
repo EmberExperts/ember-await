@@ -1,267 +1,290 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
-import { render, settled } from '@ember/test-helpers';
+import { render, click, settled, setupOnerror, resetOnerror } from '@ember/test-helpers';
 import { hbs } from 'ember-cli-htmlbars';
 import { Promise, resolve, reject } from 'rsvp';
-import { task } from 'ember-concurrency';
-import { defineProperty, set } from '@ember/object';
-import Component from '@ember/component';
+import { set } from '@ember/object';
+
+const resolveIn = (ms, value) => new Promise((resolve) => setTimeout(resolve, ms, value));
 
 module('Integration | Component | await', function(hooks) {
   setupRenderingTest(hooks);
 
-  test('it shows block content when promise argument is empty', async function(assert) {
-    assert.expect(1);
+  hooks.beforeEach(() => {
+    resetOnerror();
+  })
+
+  test('yields data', async function(assert) {
+    set(this, 'promise', resolve('data'))
 
     await render(hbs`
-      <Await as |await|>
-        <await.Fulfilled>
-          Block Content
-        </await.Fulfilled>
+      <Await @promise={{this.promise}} as |await|>
+        {{await.data}}
       </Await>
     `);
 
-    assert.dom().hasText('Block Content');
-  });
+    assert.dom().hasText('data')
+  })
 
-  test('it does not rerender when promise is changing from async to sync value', async function(assert) {
-    assert.expect(3);
+  test('yields error', async function(assert) {
+    setupOnerror(() => {});
+    set(this, 'promise', reject('error'))
 
-    set(this, 'logRender', () => {
-      assert.ok(true);
-    });
+    await render(hbs`
+      <Await @promise={{this.promise}} as |await|>
+        {{await.error}}
+      </Await>
+    `);
 
-    set(this, 'promise', resolve('async value'));
+    assert.dom().hasText('error')
+  })
+
+  test('yields promise states', async function(assert) {
+    await render(hbs`
+      <Await @promise={{this.promise}} as |await|>
+        {{if await.isInitial "isInitial"}}
+        {{if await.isPending "isPending"}}
+        {{if await.isRejected "isRejected"}}
+        {{if await.isFulfilled "isFulfilled"}}
+        {{if await.isSettled "isSettled"}}
+      </Await>
+    `);
+
+    assert.dom().hasText('isInitial');
+
+    let promiseResolve;
+
+    set(this, 'promise', new Promise((resolve) => {
+      promiseResolve = resolve;
+    }))
+
+    await settled();
+
+    assert.dom().hasText('isPending');
+
+    promiseResolve()
+
+    await settled();
+
+    assert.dom().hasText('isFulfilled isSettled');
+
+    set(this, 'promise', reject())
+
+    await settled();
+
+    assert.dom().hasText('isRejected isSettled');
+  })
+
+  test('yields counter', async function(assert) {
+    set(this, 'promise', resolve())
+
+    await render(hbs`
+      <Await @promise={{this.promise}} as |await|>
+        {{await.counter}}
+        {{if await.isFulfilled "isFulfilled"}}
+      </Await>
+    `);
+
+    assert.dom().hasText('1 isFulfilled')
+  })
+
+  test('yields current task', async function(assert) {
+    set(this, 'promise', resolve())
+
+    await render(hbs`
+      <Await @promise={{this.promise}} as |await|>
+        {{if await.task.isSuccessful "isSuccessful"}}
+      </Await>
+    `);
+
+    assert.dom().hasText('isSuccessful')
+  })
+
+  test('yields reload action', async function(assert) {
+    let count = 0;
+    set(this, 'promise', () => resolve(count += 1))
+
+    await render(hbs`
+      <Await @promise={{this.promise}} as |await|>
+        Counter: {{await.counter}}
+        Data: {{await.data}}
+        <button {{on "click" await.reload}}>Reload</button>
+      </Await>
+    `);
+
+    assert.dom().containsText('Counter: 1')
+    assert.dom().containsText('Data: 1')
+
+    await click('button');
+
+    assert.dom().containsText('Counter: 2')
+    assert.dom().containsText('Data: 2')
+  })
+
+  test('yields cancel action', async function(assert) {
+    set(this, 'promise', new Promise(() => {}))
+
+    await render(hbs`
+      <Await @promise={{this.promise}} as |await|>
+        {{if await.isPending "isPending"}}
+        <button {{on "click" await.cancel}}></button>
+      </Await>
+    `);
+
+    assert.dom().hasText('isPending')
+
+    await click('button');
+
+    assert.dom().hasText('')
+  })
+
+  test("it can be nested", async function(assert) {
+    set(this, 'outerFn', resolveIn(0, 'outer'))
+    set(this, 'innerFn', resolveIn(100, 'inner'))
+
+    await render(hbs`
+      <Await @promise={{this.outerFn}} as |outer|>
+        <Await @promise={{this.innerFn}} as |inner|>
+          {{outer.data}} {{inner.data}}
+        </Await>
+      </Await>
+    `);
+
+    assert.dom().hasText('outer');
+
+    await resolveIn(110);
+
+    assert.dom().hasText('outer inner');
+  })
+
+  module('Fulfilled', function() {
+    test("renders only after the promise is resolved", async function(assert) {
+      setupOnerror(() => {});
+      this.promise =  resolveIn(10, 'ok')
+      this.defer = () => reject("fail")
+
+      await render(hbs`
+        <Await @promise={{this.promise}} @defer={{this.defer}} as |await|>
+          <await.Fulfilled as |data|>
+            <button {{on "click" await.run}}>{{data}}</button>
+          </await.Fulfilled>
+
+          <await.Rejected as |error|>
+            {{error}}
+          </await.Rejected>
+        </Await>
+      `);
+
+      assert.dom().hasText('');
+      await resolveIn(10);
+
+      assert.dom().hasText('ok');
+
+      await click('button');
+      assert.dom().hasText('fail');
+    })
+  })
+
+  module("Pending", function() {
+    test("renders only while the promise is pending", async function(assert) {
+      this.promise = resolveIn(10);
+
+      await render(hbs`
+        <Await @promise={{this.promise}} as |await|>
+          <await.Pending>pending</await.Pending>
+          <await.Fulfilled>done</await.Fulfilled>
+        </Await>
+      `);
+
+      assert.dom().hasText('pending');
+      await resolveIn(10);
+      assert.dom().hasText('done');
+    })
+  })
+
+  module("Rejected", function() {
+    test("renders only after the promise is rejected", async function(assert) {
+      setupOnerror(() => {});
+      this.promise = reject('error');
+
+      await render(hbs`
+        <Await @promise={{this.promise}} as |await|>
+          <await.Rejected>{{await.error}}</await.Rejected>
+        </Await>
+      `);
+
+      assert.dom().hasText('error');
+    })
+  })
+
+  module("Initial", function() {
+    test("renders only while the deferred promise has not started yet", async function(assert) {
+      this.defer = resolveIn(50, 'ok');
+
+      await render(hbs`
+        <Await @defer={{this.defer}} as |await|>
+          <await.Initial>
+            <button {{on "click" await.run}}>initial</button>
+          </await.Initial>
+
+          <await.Pending>pending</await.Pending>
+          <await.Fulfilled>done</await.Fulfilled>
+        </Await>
+      `);
+
+      assert.dom().hasText('initial');
+      await click('button');
+      assert.dom().hasText('pending');
+      await resolveIn(100);
+      assert.dom().hasText('done');
+    })
+  })
+
+  module("Settled", function() {
+    test("renders after the promise is fulfilled", async function(assert) {
+      this.promise = () => resolve("settled")
+
+      await render(hbs`
+        <Await @promise={{this.promise}} as |await|>
+          <await.Settled>{{await.data}}</await.Settled>
+        </Await>
+      `);
+
+      assert.dom().hasText('settled');
+    })
+
+    test("renders after the promise is rejected", async function(assert) {
+      setupOnerror(() => {});
+      this.promise = () => reject("error")
+
+      await render(hbs`
+        <Await @promise={{this.promise}} as |await|>
+          <await.Settled>{{await.error}}</await.Settled>
+        </Await>
+      `);
+
+      assert.dom().hasText('error');
+    })
+  })
+
+  test('it reacts to promise change', async function(assert) {
+    assert.expect(2);
+
+    this.set('promise', resolve('John Doe'));
 
     await render(hbs`
       <Await @promise={{this.promise}} as |await|>
         <await.Fulfilled as |value|>
-          <div {{did-insert this.logRender}}>{{value}}</div>
+          {{value}}
         </await.Fulfilled>
       </Await>
     `);
 
-    assert.dom().hasText('async value')
-
-    set(this, 'promise', 'sync value');
+    assert.dom().hasText('John Doe');
+    this.set('promise', resolve('John Snow'));
 
     await settled();
 
-    assert.dom().hasText('sync value')
-  });
-
-  module('non-promise', function() {
-    test('it allows for custom loading state', async function(assert) {
-      assert.expect(1);
-
-      this.owner.register('component:custom-loading', Component.extend({
-        tagName: '',
-        layout: hbs`<div data-test-custom-loading></div>`
-      }));
-
-      this.set('promise', 'non-promise');
-
-      await render(hbs`
-        <Await @promise={{this.promise}} @isLoaded={{false}} as |await|>
-          <await.Pending>
-            <CustomLoading />
-          </await.Pending>
-        </Await>
-      `);
-
-      assert.dom('[data-test-custom-loading]').exists();
-    });
-
-    test('it returns value as param', async function(assert) {
-      assert.expect(1);
-
-      this.set('promise', 'John Doe');
-
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          <await.Fulfilled as |value|>
-            {{value}}
-          </await.Fulfilled>
-        </Await>
-      `);
-
-      assert.dom().hasText('John Doe');
-    });
-  });
-
-  module('promise', function() {
-    test('it reacts to promise change', async function(assert) {
-      assert.expect(2);
-
-      this.set('promise', resolve('John Doe'));
-
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          <await.Fulfilled as |value|>
-            {{value}}
-          </await.Fulfilled>
-        </Await>
-      `);
-
-      assert.dom().hasText('John Doe');
-      this.set('promise', resolve('John Snow'));
-
-      await settled();
-
-      assert.dom().hasText('John Snow')
-    });
-
-    test('it allows for custom loading state', async function(assert) {
-      assert.expect(1);
-
-      this.owner.register('component:custom-loading', Component.extend({
-        layout: hbs`<div data-test-custom-loading></div>`
-      }));
-
-      this.set('promise', new Promise(() => {}));
-
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          <await.Pending>
-            <CustomLoading />
-          </await.Pending>
-        </Await>
-      `);
-
-      assert.dom('[data-test-custom-loading]').exists();
-    });
-
-    test('it allows for custom error state', async function(assert) {
-      assert.expect(1);
-
-      this.owner.register('component:custom-error', Component.extend({
-        layout: hbs`<div data-test-custom-error></div>`
-      }));
-
-      this.set('promise', reject());
-
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          <await.Rejected>
-            <CustomError />
-          </await.Rejected>
-        </Await>
-      `);
-
-      assert.dom('[data-test-custom-error]').exists();
-    });
-
-    test('it returns value as param', async function(assert) {
-      assert.expect(1);
-
-      this.set('promise', resolve('John Doe'));
-
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          <await.Fulfilled as |value|>
-            {{value}}
-          </await.Fulfilled>
-        </Await>
-      `);
-
-      assert.dom().hasText('John Doe');
-    });
-  });
-
-  module('task', function() {
-    test('it allows for custom loading state', async function(assert) {
-      assert.expect(1);
-
-      this.owner.register('component:custom-loading', Component.extend({
-        layout: hbs`<div data-test-custom-loading></div>`
-      }));
-
-      defineProperty(this, 'task', task(function *() {
-        return yield new Promise(() => {});
-      }).restartable());
-
-      this.set('promise', this.task.perform());
-
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          <await.Pending>
-            <CustomLoading />
-          </await.Pending>
-        </Await>
-      `);
-
-      assert.dom('[data-test-custom-loading]').exists();
-    });
-
-    test('it allows for custom error state', async function(assert) {
-      assert.expect(1);
-
-      this.owner.register('component:custom-error', Component.extend({
-        layout: hbs`<div data-test-custom-error></div>`
-      }));
-
-      defineProperty(this, 'task', task(function *() {
-        return yield reject();
-      }).restartable());
-
-      this.set('promise', this.task.perform());
-
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          <await.Rejected>
-            <CustomError />
-          </await.Rejected>
-        </Await>
-      `);
-
-      assert.dom('[data-test-custom-error]').exists();
-    });
-
-    test('it returns value as param', async function(assert) {
-      assert.expect(1);
-
-      defineProperty(this, 'task', task(function *() {
-        return yield resolve('John Doe');
-      }).restartable());
-
-      this.set('promise', this.task.perform());
-
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          <await.Fulfilled as |value|>
-            {{value}}
-          </await.Fulfilled>
-        </Await>
-      `);
-
-      assert.dom().hasText('John Doe');
-    });
-
-    test('it shows block content when task is cancelled', async function(assert) {
-      assert.expect(2);
-
-      defineProperty(this, 'task', task(function *() {
-        yield new Promise(() => {});
-
-        return yield resolve('John Doe');
-      }).restartable());
-
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          <await.Fulfilled as |value|>
-            {{value}}
-            My content
-          </await.Fulfilled>
-        </Await>
-      `);
-
-      this.set('promise', this.task.perform());
-      await this.promise.cancel();
-
-      await settled();
-
-      assert.dom().hasText('My content');
-      assert.dom().doesNotIncludeText('John Doe');
-    });
+    assert.dom().hasText('John Snow')
   });
 });
