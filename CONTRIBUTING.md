@@ -2,7 +2,7 @@
 
 ## Installation
 
-* `git clone <repository-url>`
+* `git clone git@github.com:Exelord/ember-await.git`
 * `cd ember-await`
 * `npm install`
 

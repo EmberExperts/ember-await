@@ -1,13 +1,13 @@
 {
   "name": "ember-await",
   "version": "0.0.0",
-  "description": "The default blueprint for ember-cli addons.",
+  "description": "Await component for Ember Applications",
   "keywords": [
     "ember-addon"
   ],
-  "repository": "",
+  "repository": "https://github.com/Exelord/ember-await",
   "license": "MIT",
-  "author": "",
+  "author": "Exelord",
   "directories": {
     "doc": "doc",
     "test": "tests"
