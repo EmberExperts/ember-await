@@ -1,44 +1,94 @@
 import Component from '@glimmer/component';
-import { computed, action, notifyPropertyChange } from '@ember/object';
+import { computed, action } from '@ember/object';
 import { task } from 'ember-concurrency-decorators';
+// eslint-disable-next-line ember/no-observers
+import { addObserver, removeObserver } from '@ember/object/observers';
 
 class AwaitComponent extends Component {
-  get isLoaded() {
-    return this.args.isLoaded ?? true;
+  @computed('promiseTask.performCount')
+  get counter() {
+    return this.promiseTask.performCount
   }
 
-  get isAsync() {
-    return Boolean(this.args.promise?.then)
+  @computed('promiseTask.last.value')
+  get data() {
+    return this.promiseTask.last?.value
   }
 
-  @computed('currentState.isError', 'isPending')
+  @computed('promiseTask.last.error')
+  get error() {
+    return this.promiseTask.last?.error
+  }
+
+  @computed('isRejected', 'error', 'data')
+  get value() {
+    return this.isRejected ? this.error : this.data;
+  }
+
+  @computed('promiseTask.last.isSuccessful')
   get isFulfilled() {
-    return !this.currentState.isError && !this.isPending
+    return !!this.promiseTask.last?.isSuccessful
   }
 
-  @computed('isAsync', 'currentState.isRunning', 'isLoaded')
+  @computed('promiseTask.last.isError')
+  get isRejected() {
+    return !!this.promiseTask.last?.isError
+  }
+
+  @computed('promiseTask.last.isFinished')
+  get isSettled() {
+    return !!this.promiseTask.last?.isFinished
+  }
+
+  @computed('counter')
+  get isInitial() {
+    return this.counter === 0;
+  }
+
+  @computed('promiseTask.isRunning')
   get isPending() {
-    return (this.isAsync ? this.currentState.isRunning : false) || !this.isLoaded;
+    return this.promiseTask.isRunning;
   }
 
-  @computed('args.promise')
-  get currentState() {
-    return this.promiseTask.perform(this.args.promise);
+  constructor() {
+    super(...arguments)
+    addObserver(this, 'args.promise', this.resolvePromise)
+
+    if (this.args.promise) {
+      this.resolvePromise();
+    }
+  }
+
+  willDestroy() {
+    removeObserver(this, 'args.promise', this.resolvePromise)
   }
 
   @task({ restartable: true })
   *promiseTask(promise) {
-    return yield promise;
+    return yield ((this.isFunction(promise) ? promise() : promise));
+  }
+
+  resolvePromise() {
+    return this.promiseTask.perform(this.args.promise);
+  }
+
+  isFunction(promise) {
+    return (typeof promise) === "function";
+  }
+
+  @action
+  run() {
+    this.promiseTask.perform(this.args.defer)
   }
 
   @action
   reload() {
-    notifyPropertyChange(this, 'currentState');
+    this.resolvePromise();
   }
 
   @action
   cancel() {
-    this.currentState.cancel();
+    this.promiseTask.cancelAll();
   }
 }
 
