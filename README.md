@@ -2,6 +2,10 @@
 
 \[Short description of the addon.\]
 
+## Documentation
+
+For full documentation visit: **https://exelord.gitbook.io/ember-await**
+
 ## Compatibility
 
 * Ember.js v3.12 or above
@@ -14,9 +18,27 @@
 ember install ember-await
 ```
 
-## Usage
+## Basic usage
 
-\[Longer description of how to use the addon in apps.\]
+```hbs
+  <Await @promise={{this.fetchPosts}} as |await|>
+    <await.Pending>
+      Loading posts...
+    </await.Pending>
+
+    <await.Fulfilled as |posts|>
+      {{#each posts as |post|}}
+        {{post.title}}
+      {{/each}}
+    </await.Fulfilled>
+
+    <await.Rejected>
+      Something went wrong :(
+    </await.Rejected>
+  </Await>
+```
+
+For full documentation visit: **https://exelord.gitbook.io/ember-await**
 
 ## Contributing
 
