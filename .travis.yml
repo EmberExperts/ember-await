@@ -33,6 +33,7 @@ jobs:
   include:
     # runs linting and tests with current locked deps
     - stage: "Tests"
+      name: "Tests"
       script: npm run test:ember
     - script: npm run lint
       name: "Linter"
