@@ -1,7 +1,15 @@
-{{#if this.isRunning}}
-  {{yield to="loading"}}
-{{else if this.isError}}
-  {{yield this.error to="error"}}
-{{else}}
-  {{yield this.value}}
-{{/if}}
+{{yield (hash
+  data=this.currentState.value
+  error=this.currentState.error
+  isPending=this.isPending
+  isFulfilled=this.isFulfilled
+  isRejected=this.currentState.isError
+  counter=this.promiseTask.performCount
+  task=this.currentState
+  reload=this.reload
+  cancel=this.cancel
+
+  Pending=(component "await/state" if=this.isPending)
+  Fulfilled=(component "await/state" if=this.isFulfilled value=this.currentState.value)
+  Rejected=(component "await/state" if=this.currentState.isError value=this.currentState.error)
+)}}

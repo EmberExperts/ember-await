@@ -1,31 +1,44 @@
 import Component from '@glimmer/component';
+import { computed, action, notifyPropertyChange } from '@ember/object';
+import { task } from 'ember-concurrency-decorators';
 
 class AwaitComponent extends Component {
-  isLoaded = true;
-
-  get isRunning() {
-    return (this.isAsync ? this.resolveTask.isRunning : false) || !this.isLoaded;
-  }
-
-  get isError() {
-    return this.isAsync ? this.resolve.last.isError : false;
+  get isLoaded() {
+    return this.args.isLoaded ?? true;
   }
 
   get isAsync() {
     return Boolean(this.args.promise?.then)
   }
 
-  get value() {
-    return this.isAsync ? this.resolveTask.last.value : this.promise;
+  @computed('currentState.isError', 'isPending')
+  get isFulfilled() {
+    return !this.currentState.isError && !this.isPending
   }
 
-  get error() {
-    return this.resolveTask.last.value;
+  @computed('isAsync', 'currentState.isRunning', 'isLoaded')
+  get isPending() {
+    return (this.isAsync ? this.currentState.isRunning : false) || !this.isLoaded;
   }
 
-  // @task({ restartable: true })
-  *resolveTask() {
+  @computed('args.promise')
+  get currentState() {
+    return this.promiseTask.perform(this.args.promise);
+  }
+
+  @task({ restartable: true })
+  *promiseTask(promise) {
     return yield promise;
+  }
+
+  @action
+  reload() {
+    notifyPropertyChange(this, 'currentState');
+  }
+
+  @action
+  cancel() {
+    this.currentState.cancel();
   }
 }
 
