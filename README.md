@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Exelord/ember-await/master/logo.png" />
+</p>
+
 # ember-await
 
 Ember component for declarative promise resolution. Makes it easy to handle every state of the asynchronous process, without assumptions about the shape of your data or the type of request. Use it with fetch, Axios or other data fetching libraries, even GraphQL.

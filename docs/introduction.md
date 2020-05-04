@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Exelord/ember-await/master/logo.png" />
+</p>
+
 # Introduction
 
 >### **Disclaimer**
