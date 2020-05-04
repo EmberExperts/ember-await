@@ -7,6 +7,9 @@
 - [Installation](getting-started/installation.md)
 - [Usage](getting-started/usage.md)
 
+## Guides
+- [Usage](guides/migrate-from-routes.md)
+  
 ## API
 
  - [Interfaces](api/interfaces.md)
