@@ -11,6 +11,7 @@
  - [Interfaces](api/interfaces.md)
  - [Arguments](api/arguments.md)
  - [Yielded properties](api/yielded-properties.md)
+ - [Yielded components](api/yielded-components.md)
 
 ## Misc
 
