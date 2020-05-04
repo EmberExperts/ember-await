@@ -5,6 +5,7 @@
 ## Getting started
 
 - [Installation](getting-started/installation.md)
+- [Usage](getting-started/usage.md)
 
 ## API
 
