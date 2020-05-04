@@ -48,6 +48,6 @@ You can also load the promise on demand using `@defer`:
   </Await>
 ```
 
-For more useful patterns in Ember Await check out the rest of the documentation and visit [React Async](react-async.com) for reference.
+For more useful patterns in Ember Await check out the rest of the documentation and visit [React Async](https://react-async.com) for reference.
 
 **More Guides are coming soon!**
