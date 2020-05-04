@@ -8,7 +8,9 @@
 - [Usage](getting-started/usage.md)
 
 ## Guides
+
 - [Migrate from routes](guides/migrate-from-routes.md)
+- [Load data on demand](guides/load-data-on-demand.md)
   
 ## API
 
