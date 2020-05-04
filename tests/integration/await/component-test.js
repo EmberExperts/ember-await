@@ -39,6 +39,31 @@ module('Integration | Component | await', function(hooks) {
     assert.dom().hasText('error')
   })
 
+  test('yields value when error', async function(assert) {
+    setupOnerror(() => {});
+    set(this, 'promise', reject('error'))
+
+    await render(hbs`
+      <Await @promise={{this.promise}} as |await|>
+        {{await.value}}
+      </Await>
+    `);
+
+    assert.dom().hasText('error')
+  })
+
+  test('yields value when fulfilled', async function(assert) {
+    set(this, 'promise', resolve('data'))
+
+    await render(hbs`
+      <Await @promise={{this.promise}} as |await|>
+        {{await.value}}
+      </Await>
+    `);
+
+    assert.dom().hasText('data')
+  })
+
   test('yields promise states', async function(assert) {
     await render(hbs`
       <Await @promise={{this.promise}} as |await|>
