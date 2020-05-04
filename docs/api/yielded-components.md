@@ -2,7 +2,7 @@
 
 Ember Await provides several components you can use inside in `<Await />` and can use the same component many times.
 
-## `<Await.Initial>`
+## `Initial`
 
 Renders only while the deferred promise is still waiting to be run, or you have not provided any promise.
 
@@ -13,14 +13,14 @@ Renders only while the deferred promise is still waiting to be run, or you have 
 ### Examples
 
 ```hbs
-<Await defer={{this.deferFn}}>
-  <Await.Initial>
+<Await defer={{this.deferFn}} as |await|>
+  <await.Initial>
     <p>This text is only rendered while `run` has not yet been invoked on `defer`.</p>
-  </Await.Initial>
+  </await.Initial>
 </Await>
 ```
 
-## `<Await.Pending>`
+## `Pending`
 
 This component renders only while the promise is pending \(loading / unsettled\).
 
@@ -33,10 +33,10 @@ This component renders only while the promise is pending \(loading / unsettled\)
 ### Examples
 
 ```hbs
-<Await promise={{this.promise}}>
-  <Await.Pending>
+<Await promise={{this.promise}} as |await|>
+  <await.Pending>
     <p>This text is only rendered while awaiting for promise resolution</p>
-  </Await.Pending>
+  </await.Pending>
 </Await>
 ```
 
@@ -57,14 +57,14 @@ This component renders only when the promise is fulfilled \(resolved to a value,
 ### Examples
 
 ```hbs
-<Await promise={{this.promise}}>
-  <Await.Fulfilled as |data|>
+<Await promise={{this.promise}} as |await|>
+  <await.Fulfilled as |data|>
     The result is: {{data}}
-  </Await.Fulfilled>
+  </await.Fulfilled>
 </Await>
 ```
 
-## `<Await.Rejected>`
+## `Rejected`
 
 This component renders only when the promise is rejected.
 
@@ -79,14 +79,14 @@ This component renders only when the promise is rejected.
 ### Examples
 
 ```hbs
-<Await promise={{this.promise}}>
-  <Await.Rejected as |error|>
+<Await promise={{this.promise}} as |await|>
+  <await.Rejected as |error|>
     The error is: {{error.message}}
-  </Await.Rejected>
+  </await.Rejected>
 </Await>
 ```
 
-## `<Await.Settled>`
+## `Settled`
 
 This component renders only when the promise is settled (resolved or rejected).
 
@@ -97,9 +97,9 @@ This component renders only when the promise is settled (resolved or rejected).
 ### Examples
 
 ```hbs
-<Await promise={{this.promise}}>
-  <Await.Settled>
+<Await promise={{this.promise}} as |await|>
+  <await.Settled>
     Request has been settled
-  </Await.Settled>
+  </await.Settled>
 </Await>
 ```

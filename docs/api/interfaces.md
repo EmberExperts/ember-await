@@ -3,8 +3,8 @@
 ## `Await` component
 
 ```hbs
-<Await ...arguments as |props|></Await>
+<Await ...arguments as |properties|></Await>
 ```
 
-- [`arguments`](./arguments.md) Component arguments
-- [`props`](yielded-properties.md) yielded properties
+- `arguments` - Component [arguments](./arguments.md)
+- `properties` - [yielded properties](yielded-properties.md) and [yielded components](yielded-components.md)
