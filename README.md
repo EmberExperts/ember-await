@@ -6,8 +6,8 @@ Ember component for declarative promise resolution. Makes it easy to handle ever
 - Provides convenient metadata (`isPending`, `isFulfilled` etc.)
 - Provides `cancel` and `reload` actions
 - Supports non-async data
-- Highly inspired by [react-async](react-async.com)
-- Takes advantage of [ember-concurrency](http://ember-concurrency.com/) to manage promise state (aborting, cancellation, etc.)
+- Highly inspired by [react-async](https://react-async.com)
+- Takes advantage of [ember-concurrency](https://ember-concurrency.com/) to manage promise state (aborting, cancellation, etc.)
 
 ## Documentation
 

@@ -2,7 +2,7 @@
 
 >### **Disclaimer**
 >
->**Ember Await aims to clone the functionality of [React Async](react-async.com) (a react library for handling async state) and bring the solution to Ember ecosystem. As we try to make is as close as possible, not all the features are implemented yet, and not all of them are ported 1:1. Please keep that in mind.**
+>**Ember Await aims to clone the functionality of [React Async](https://react-async.com) (a react library for handling async state) and bring the solution to Ember ecosystem. As we try to make is as close as possible, not all the features are implemented yet, and not all of them are ported 1:1. Please keep that in mind.**
 
 
 ___ 
@@ -20,6 +20,6 @@ Ember Await works well even in larger applications with multiple or nested data 
 - Provides `cancel` and `reload` actions
 - ~~Accepts onResolve, onReject and onCancel callbacks~~
 - Supports non-async data
-- Highly inspired by [react-async](react-async.com)
-- Takes advantage of [ember-concurrency](http://ember-concurrency.com/) to manage promise state (aborting, cancellation, etc.)
+- Highly inspired by [react-async](https://react-async.com)
+- Takes advantage of [ember-concurrency](https://ember-concurrency.com/) to manage promise state (aborting, cancellation, etc.)
 - ~~Written in TypeScript, ships with type definitions~~
