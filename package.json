@@ -20,7 +20,8 @@
     "start": "ember serve",
     "test": "npm-run-all lint:* test:*",
     "test:ember": "ember test",
-    "test:ember-compatibility": "ember try:each"
+    "test:ember-compatibility": "ember try:each",
+    "release": "release-it"
   },
   "dependencies": {
     "ember-cli-babel": "^7.18.0",
@@ -56,7 +57,8 @@
     "eslint-plugin-node": "^11.0.0",
     "loader.js": "^4.7.0",
     "npm-run-all": "^4.1.5",
-    "qunit-dom": "^1.1.0"
+    "qunit-dom": "^1.1.0",
+    "release-it": "^13.5.8"
   },
   "engines": {
     "node": "10.* || >= 12"
@@ -66,5 +68,10 @@
   },
   "ember-addon": {
     "configPath": "tests/dummy/config"
+  },
+  "release-it": {
+    "github": {
+      "release": true
+    }
   }
 }
