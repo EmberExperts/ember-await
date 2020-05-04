@@ -8,7 +8,7 @@
 - [Usage](getting-started/usage.md)
 
 ## Guides
-- [Usage](guides/migrate-from-routes.md)
+- [Migrate from routes](guides/migrate-from-routes.md)
   
 ## API
 
