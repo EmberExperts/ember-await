@@ -40,7 +40,7 @@ This component renders only while the promise is pending \(loading / unsettled\)
 </Await>
 ```
 
-## `<Await.Fulfilled>`
+## `Fulfilled`
 
 This component renders only when the promise is fulfilled \(resolved to a value, could be `undefined`\).
 
