@@ -60,28 +60,20 @@ class AwaitComponent extends Component {
   constructor() {
     super(...arguments);
 
-    addObserver(this, 'args.promise', this.resolvePromise);
+    addObserver(this, 'args.promise', this._resolvePromise);
 
     if (this.args.promise) {
-      this.resolvePromise();
+      this._resolvePromise();
     }
   }
 
   willDestroy() {
-    removeObserver(this, 'args.promise', this.resolvePromise);
+    removeObserver(this, 'args.promise', this._resolvePromise);
   }
 
   @task({ restartable: true })
   *promiseTask(promise) {
-    return yield ((this.isFunction(promise) ? promise() : promise));
-  }
-
-  resolvePromise() {
-    return this.promiseTask.perform(this.args.promise);
-  }
-
-  isFunction(promise) {
-    return (typeof promise) === "function";
+    return yield ((this._isFunction(promise) ? promise() : promise));
   }
 
   @action
@@ -93,12 +85,20 @@ class AwaitComponent extends Component {
 
   @action
   reload() {
-    this.resolvePromise();
+    this._resolvePromise();
   }
 
   @action
   cancel() {
     this.promiseTask.cancelAll();
+  }
+
+  _resolvePromise() {
+    return this.promiseTask.perform(this.args.promise);
+  }
+
+  _isFunction(promise) {
+    return (typeof promise) === "function";
   }
 }
 
