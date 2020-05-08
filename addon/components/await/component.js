@@ -5,39 +5,46 @@ import { task } from 'ember-concurrency-decorators';
 import { addObserver, removeObserver } from '@ember/object/observers';
 
 class AwaitComponent extends Component {
+  @computed('promiseTask.last')
+  get lastPromiseTask() {
+    return this.promiseTask.last;
+  }
+
   @computed('promiseTask.performCount')
   get counter() {
-    return this.promiseTask.performCount
+    return this.promiseTask.performCount;
   }
 
-  @computed('promiseTask.last.value')
+  @computed('lastPromiseTask.value')
   get data() {
-    return this.promiseTask.last?.value
+    return this.lastPromiseTask?.value;
   }
 
-  @computed('promiseTask.last.error')
+  @computed('lastPromiseTask.error')
   get error() {
-    return this.promiseTask.last?.error
+    return this.lastPromiseTask?.error;
   }
 
   @computed('isRejected', 'error', 'data')
   get value() {
-    return this.isRejected ? this.error : this.data;
+    const { isRejected, error, data } = this;
+
+    return isRejected ? error : data;
   }
 
-  @computed('promiseTask.last.isSuccessful')
+  @computed('lastPromiseTask.isSuccessful')
   get isFulfilled() {
-    return !!this.promiseTask.last?.isSuccessful
+    return Boolean(this.lastPromiseTask?.isSuccessful);
   }
 
-  @computed('promiseTask.last.isError')
+  @computed('lastPromiseTask.isError')
   get isRejected() {
-    return !!this.promiseTask.last?.isError
+    return Boolean(this.lastPromiseTask?.isError);
   }
 
-  @computed('promiseTask.last.isFinished')
+  @computed('lastPromiseTask.isFinished')
   get isSettled() {
-    return !!this.promiseTask.last?.isFinished
+    return Boolean(this.lastPromiseTask?.isFinished);
   }
 
   @computed('counter')
@@ -51,44 +58,47 @@ class AwaitComponent extends Component {
   }
 
   constructor() {
-    super(...arguments)
-    addObserver(this, 'args.promise', this.resolvePromise)
+    super(...arguments);
+
+    addObserver(this, 'args.promise', this._resolvePromise);
 
     if (this.args.promise) {
-      this.resolvePromise();
+      this._resolvePromise();
     }
   }
 
   willDestroy() {
-    removeObserver(this, 'args.promise', this.resolvePromise)
+    removeObserver(this, 'args.promise', this._resolvePromise);
   }
 
   @task({ restartable: true })
   *promiseTask(promise) {
-    return yield ((this.isFunction(promise) ? promise() : promise));
-  }
-
-  resolvePromise() {
-    return this.promiseTask.perform(this.args.promise);
-  }
-
-  isFunction(promise) {
-    return (typeof promise) === "function";
+    return yield ((this._isFunction(promise) ? promise() : promise));
   }
 
   @action
   run() {
-    this.promiseTask.perform(this.args.defer)
+    const { promiseTask, args } = this;
+
+    promiseTask.perform(args.defer);
   }
 
   @action
   reload() {
-    this.resolvePromise();
+    this._resolvePromise();
   }
 
   @action
   cancel() {
     this.promiseTask.cancelAll();
+  }
+
+  _resolvePromise() {
+    return this.promiseTask.perform(this.args.promise);
+  }
+
+  _isFunction(promise) {
+    return (typeof promise) === "function";
   }
 }
 
