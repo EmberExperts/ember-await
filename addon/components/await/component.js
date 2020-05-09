@@ -68,6 +68,8 @@ class AwaitComponent extends Component {
   }
 
   willDestroy() {
+    super.willDestroy(...arguments);
+
     removeObserver(this, 'args.promise', this._resolvePromise);
   }
 
