@@ -93,7 +93,7 @@ class AwaitComponent extends Component {
 
     addObserver(this, 'args.promise', this._resolvePromise);
 
-    if (this.args.promise && !this.args.initialValue) {
+    if (this.args.promise && this.args.initialValue === undefined) {
       this._resolvePromise();
     }
   }
