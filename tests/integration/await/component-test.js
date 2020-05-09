@@ -69,8 +69,10 @@ module('Integration | Component | await', function(hooks) {
       <Await @promise={{this.promise}} as |await|>
         {{if await.isInitial "isInitial"}}
         {{if await.isPending "isPending"}}
+        {{if await.isLoading "isLoading"}}
         {{if await.isRejected "isRejected"}}
         {{if await.isFulfilled "isFulfilled"}}
+        {{if await.isResolved "isResolved"}}
         {{if await.isSettled "isSettled"}}
       </Await>
     `);
@@ -85,13 +87,13 @@ module('Integration | Component | await', function(hooks) {
 
     await settled();
 
-    assert.dom().hasText('isPending');
+    assert.dom().hasText('isPending isLoading');
 
     promiseResolve();
 
     await settled();
 
-    assert.dom().hasText('isFulfilled isSettled');
+    assert.dom().hasText('isFulfilled isResolved isSettled');
 
     set(this, 'promise', reject());
 
