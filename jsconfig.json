@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "paths": {
+      "dummy/*": [ "tests/dummy/app/*", "app/*"],
+      "dummy/tests/*": ["tests/*"],
+      "ember-await/*": ["./addon/*"],
+      "ember-await/tests/*": ["./tests/*"],
+    }
+  },
+  "exclude": [
+    ".git",
+    "node_modules",
+    "tmp",
+    "dist",
+    "vendor"
+  ]
+}
