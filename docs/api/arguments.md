@@ -8,7 +8,6 @@ These can be passed to `<Await />` component.
 - ~~[`onResolve`](#onresolve) Callback invoked when Promise resolves.~~
 - ~~[`onReject`](#onreject) Callback invoked when Promise rejects.~~
 - ~~[`onCancel`](#oncancel) Callback invoked when a Promise is cancelled.~~
-- ~~[`json`](#json) Enable JSON parsing of the response.~~
 
 ## `promise`
 
