@@ -1,7 +1,8 @@
+/* eslint-disable ember/no-observers */
+/* eslint-disable ember/no-computed-properties-in-native-classes */
 import Component from '@glimmer/component';
 import { computed, action } from '@ember/object';
 import { task } from 'ember-concurrency-decorators';
-// eslint-disable-next-line ember/no-observers
 import { addObserver, removeObserver } from '@ember/object/observers';
 
 class AwaitComponent extends Component {
@@ -75,7 +76,7 @@ class AwaitComponent extends Component {
 
   @task({ restartable: true })
   *promiseTask(promise) {
-    return yield ((this._isFunction(promise) ? promise() : promise));
+    return yield this._isFunction(promise) ? promise() : promise;
   }
 
   @action
@@ -100,7 +101,7 @@ class AwaitComponent extends Component {
   }
 
   _isFunction(promise) {
-    return (typeof promise) === "function";
+    return typeof promise === 'function';
   }
 }
 
