@@ -4,7 +4,7 @@ These can be passed to `<Await />` component.
 
 - [`promise`](#promise) An already started Promise instance or function that returns a Promise, automatically invoked..
 - [`defer`](#defer) Function that returns a Promise, manually invoked with `run`.
-- ~~[`initialValue`](#initialvalue) Provide initial data or error for server-side rendering.~~
+- [`initialValue`](#initialvalue) Provide initial data or error for server-side rendering.
 - ~~[`onResolve`](#onresolve) Callback invoked when Promise resolves.~~
 - ~~[`onReject`](#onreject) Callback invoked when Promise rejects.~~
 - ~~[`onCancel`](#oncancel) Callback invoked when a Promise is cancelled.~~
@@ -24,3 +24,11 @@ A Promise instance which has already started or a function that returns a promis
 A function that returns a promise. This is invoked only by manually calling `run(...args)`. The `defer` is commonly used to send data to the server following a user action, such as submitting a form. You can use this in conjunction with `promise` to fill the form with existing data, then updating it on submit with `defer`.
 
 > Be aware that when using both `promise` and `defer`, the shape of their fulfilled value should match, because they both update the same `data`.
+
+## `initialValue`
+
+> `any | Error`
+
+Initial state for `data` or `error` \(if instance of Error\); useful for server-side rendering. When an `initialValue` is provided, the `promise` will not be invoked on first render if it is a function. Instead, `status` will be immediately set to `fulfilled` or `rejected` and your components will render accordingly. If you want to trigger the `promise` regardless, you can call `reload()`.
+
+> Note that `onResolve` or `onReject` is not invoked in this case and no `task` property will be created.

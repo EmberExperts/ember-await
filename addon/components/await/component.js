@@ -16,41 +16,61 @@ class AwaitComponent extends Component {
     return this.promiseTask.performCount;
   }
 
-  @computed('lastPromiseTask.value')
+  @computed('lastPromiseTask.value', 'isFulfilled', 'args.initialValue')
   get data() {
-    return this.lastPromiseTask?.value;
+    if (this.lastPromiseTask) {
+      return this.lastPromiseTask.value;
+    }
+
+    return this.isFulfilled && this.args.initialValue;
   }
 
-  @computed('lastPromiseTask.error')
+  @computed('lastPromiseTask.error', 'isRejected', 'args.initialValue')
   get error() {
-    return this.lastPromiseTask?.error;
+    if (this.lastPromiseTask) {
+      return this.lastPromiseTask.error;
+    }
+
+    return this.isRejected && this.args.initialValue;
   }
 
-  @computed('isRejected', 'error', 'data')
+  @computed('isFulfilled', 'error', 'data')
   get value() {
-    const { isRejected, error, data } = this;
+    const { isFulfilled, error, data } = this;
 
-    return isRejected ? error : data;
+    return isFulfilled ? data : error;
   }
 
   @computed('lastPromiseTask.isSuccessful')
   get isFulfilled() {
-    return Boolean(this.lastPromiseTask?.isSuccessful);
+    if (this.lastPromiseTask) {
+      return this.lastPromiseTask.isSuccessful;
+    }
+
+    const { initialValue } = this.args;
+
+    return initialValue !== undefined && !(initialValue instanceof Error);
   }
 
   @computed('lastPromiseTask.isError')
   get isRejected() {
-    return Boolean(this.lastPromiseTask?.isError);
+    if (this.lastPromiseTask) {
+      return this.lastPromiseTask.isError;
+    }
+
+    const { initialValue } = this.args;
+
+    return initialValue !== undefined && initialValue instanceof Error;
   }
 
-  @computed('lastPromiseTask.isFinished')
+  @computed('isFulfilled', 'isRejected')
   get isSettled() {
-    return Boolean(this.lastPromiseTask?.isFinished);
+    return this.isFulfilled || this.isRejected;
   }
 
-  @computed('counter')
+  @computed('isPending', 'isSettled', 'args.initialValue')
   get isInitial() {
-    return this.counter === 0;
+    return !this.isPending && !this.isSettled && this.counter === 0;
   }
 
   @computed('promiseTask.isRunning')
@@ -63,8 +83,9 @@ class AwaitComponent extends Component {
     if (this.isRejected) return 'rejected';
     if (this.isFulfilled) return 'fulfilled';
     if (this.isPending) return 'pending';
+    if (this.isInitial) return 'initial';
 
-    return 'initial';
+    return '';
   }
 
   constructor() {
@@ -72,7 +93,7 @@ class AwaitComponent extends Component {
 
     addObserver(this, 'args.promise', this._resolvePromise);
 
-    if (this.args.promise) {
+    if (this.args.promise && !this.args.initialValue) {
       this._resolvePromise();
     }
   }
