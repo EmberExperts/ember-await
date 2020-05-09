@@ -5,8 +5,16 @@ import { computed, action } from '@ember/object';
 import { task } from 'ember-concurrency-decorators';
 import { addObserver, removeObserver } from '@ember/object/observers';
 
+function isFunction(fn) {
+  return typeof fn === 'function';
+}
+
 function callFunction(fn, ...args) {
-  if (typeof fn === 'function') fn(...args);
+  if (isFunction(fn)) fn(...args);
+}
+
+function isDefined(value) {
+  return value !== undefined;
 }
 
 class AwaitComponent extends Component {
@@ -49,7 +57,7 @@ class AwaitComponent extends Component {
 
     const { initialValue } = this.args;
 
-    return initialValue !== undefined && !(initialValue instanceof Error);
+    return isDefined(initialValue) && !(initialValue instanceof Error);
   }
 
   @computed('lastPromiseTask.isError')
@@ -60,7 +68,7 @@ class AwaitComponent extends Component {
 
     const { initialValue } = this.args;
 
-    return initialValue !== undefined && initialValue instanceof Error;
+    return isDefined(initialValue) && initialValue instanceof Error;
   }
 
   @computed('isFulfilled', 'isRejected')
@@ -93,7 +101,7 @@ class AwaitComponent extends Component {
 
     addObserver(this, 'args.promise', this._resolvePromise);
 
-    if (this.args.promise && this.args.initialValue === undefined) {
+    if (this.args.promise && !isDefined(this.args.initialValue)) {
       this._resolvePromise();
     }
   }
@@ -119,7 +127,7 @@ class AwaitComponent extends Component {
 
   @task({ restartable: true, evented: true })
   *promiseTask(promise) {
-    return yield this._isFunction(promise) ? promise() : promise;
+    return yield isFunction(promise) ? promise() : promise;
   }
 
   @action
@@ -141,10 +149,6 @@ class AwaitComponent extends Component {
 
   _resolvePromise() {
     return this.promiseTask.perform(this.args.promise);
-  }
-
-  _isFunction(promise) {
-    return typeof promise === 'function';
   }
 }
 
