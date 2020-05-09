@@ -4,7 +4,9 @@
   value=this.value
 
   isPending=this.isPending
+  isLoading=this.isPending
   isFulfilled=this.isFulfilled
+  isResolved=this.isFulfilled
   isRejected=this.isRejected
   isSettled=this.isSettled
   isInitial=this.isInitial
@@ -16,7 +18,9 @@
   run=this.run
 
   Pending=(component "await/state" shouldRender=this.isPending)
+  Loading=(component "await/state" shouldRender=this.isPending)
   Fulfilled=(component "await/state" shouldRender=this.isFulfilled value=this.data)
+  Resolved=(component "await/state" shouldRender=this.isFulfilled value=this.data)
   Rejected=(component "await/state" shouldRender=this.isRejected value=this.error)
   Settled=(component "await/state" shouldRender=this.isSettled)
   Initial=(component "await/state" shouldRender=this.isInitial)

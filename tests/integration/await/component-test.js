@@ -211,6 +211,34 @@ module('Integration | Component | await', function(hooks) {
     });
   });
 
+  module('Resolved', function() {
+    test('renders only after the promise is resolved', async function(assert) {
+      setupOnerror(() => {});
+      this.promise = resolveIn(10, 'ok');
+      this.defer = () => reject('fail');
+
+      await render(hbs`
+        <Await @promise={{this.promise}} @defer={{this.defer}} as |await|>
+          <await.Resolved as |data|>
+            <button {{on "click" await.run}}>{{data}}</button>
+          </await.Resolved>
+
+          <await.Rejected as |error|>
+            {{error}}
+          </await.Rejected>
+        </Await>
+      `);
+
+      assert.dom().hasText('');
+      await resolveIn(10);
+
+      assert.dom().hasText('ok');
+
+      await click('button');
+      assert.dom().hasText('fail');
+    });
+  });
+
   module('Pending', function() {
     test('renders only while the promise is pending', async function(assert) {
       this.promise = resolveIn(10);
@@ -218,6 +246,23 @@ module('Integration | Component | await', function(hooks) {
       await render(hbs`
         <Await @promise={{this.promise}} as |await|>
           <await.Pending>pending</await.Pending>
+          <await.Fulfilled>done</await.Fulfilled>
+        </Await>
+      `);
+
+      assert.dom().hasText('pending');
+      await resolveIn(10);
+      assert.dom().hasText('done');
+    });
+  });
+
+  module('Loading', function() {
+    test('renders only while the promise is pending', async function(assert) {
+      this.promise = resolveIn(10);
+
+      await render(hbs`
+        <Await @promise={{this.promise}} as |await|>
+          <await.Loading>pending</await.Loading>
           <await.Fulfilled>done</await.Fulfilled>
         </Await>
       `);

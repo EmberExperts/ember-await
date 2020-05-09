@@ -24,7 +24,7 @@ Renders only while the deferred promise is still waiting to be run, or you have 
 
 This component renders only while the promise is pending \(loading / unsettled\).
 
-~~Alias: `<Await.Loading>`~~
+Alias: `<Await.Loading>`
 
 ### Arguments
 
@@ -44,7 +44,7 @@ This component renders only while the promise is pending \(loading / unsettled\)
 
 This component renders only when the promise is fulfilled \(resolved to a value, could be `undefined`\).
 
-~~Alias: `<Await.Resolved>`~~
+Alias: `<Await.Resolved>`
 
 ### Yielded properties
 
