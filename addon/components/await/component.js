@@ -5,6 +5,10 @@ import { computed, action } from '@ember/object';
 import { task } from 'ember-concurrency-decorators';
 import { addObserver, removeObserver } from '@ember/object/observers';
 
+function callFunction(fn, ...args) {
+  if (typeof fn === 'function') fn(...args);
+}
+
 class AwaitComponent extends Component {
   @computed('promiseTask.last')
   get lastPromiseTask() {
@@ -21,14 +25,14 @@ class AwaitComponent extends Component {
     if (this.lastPromiseTask) return this.lastPromiseTask.value;
 
     return this.isFulfilled ? this.args.initialValue : undefined;
-    }
+  }
 
   @computed('lastPromiseTask.error', 'isRejected', 'args.initialValue')
   get error() {
     if (this.lastPromiseTask) return this.lastPromiseTask.error;
 
     return this.isRejected ? this.args.initialValue : undefined;
-    }
+  }
 
   @computed('isFulfilled', 'error', 'data')
   get value() {
@@ -100,7 +104,20 @@ class AwaitComponent extends Component {
     removeObserver(this, 'args.promise', this._resolvePromise);
   }
 
-  @task({ restartable: true })
+  /**
+   * Used for handling ember-concurrency events
+   *
+   * @protected
+   * @param {*} name
+   * @memberof AwaitComponent
+   */
+  trigger(name) {
+    if (name === 'promiseTask:canceled') callFunction(this.args.onCancel);
+    if (name === 'promiseTask:succeeded') callFunction(this.args.onResolve, this.data);
+    if (name === 'promiseTask:errored') callFunction(this.args.onReject, this.error);
+  }
+
+  @task({ restartable: true, evented: true })
   *promiseTask(promise) {
     return yield this._isFunction(promise) ? promise() : promise;
   }

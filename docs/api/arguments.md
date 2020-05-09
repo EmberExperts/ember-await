@@ -5,9 +5,9 @@ These can be passed to `<Await />` component.
 - [`promise`](#promise) An already started Promise instance or function that returns a Promise, automatically invoked..
 - [`defer`](#defer) Function that returns a Promise, manually invoked with `run`.
 - [`initialValue`](#initialvalue) Provide initial data or error for server-side rendering.
-- ~~[`onResolve`](#onresolve) Callback invoked when Promise resolves.~~
-- ~~[`onReject`](#onreject) Callback invoked when Promise rejects.~~
-- ~~[`onCancel`](#oncancel) Callback invoked when a Promise is cancelled.~~
+- [`onResolve`](#onresolve) Callback invoked when Promise resolves.
+- [`onReject`](#onreject) Callback invoked when Promise rejects.
+- [`onCancel`](#oncancel) Callback invoked when a Promise is cancelled.
 
 ## `promise`
 
@@ -32,3 +32,21 @@ A function that returns a promise. This is invoked only by manually calling `run
 Initial state for `data` or `error` \(if instance of Error\); useful for server-side rendering. When an `initialValue` is provided, the `promise` will not be invoked on first render if it is a function. Instead, `status` will be immediately set to `fulfilled` or `rejected` and your components will render accordingly. If you want to trigger the `promise` regardless, you can call `reload()`.
 
 > Note that `onResolve` or `onReject` is not invoked in this case and no `task` property will be created.
+
+## `onResolve`
+
+> `function(data: any): void`
+
+Callback function invoked when a promise resolves, receives data as argument.
+
+## `onReject`
+
+> `function(reason: Error): void`
+
+Callback function invoked when a promise rejects, receives rejection reason \(error\) as argument.
+
+## `onCancel`
+
+> `function(): void`
+
+Callback function invoked when a promise is cancelled, either manually using `cancel()` or automatically due to arguments changes or unrendering.

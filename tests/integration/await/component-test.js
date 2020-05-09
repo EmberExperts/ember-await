@@ -509,5 +509,62 @@ module('Integration | Component | await', function(hooks) {
         assert.dom().hasText('rejected Error: initialValue');
       });
     });
+
+    module('callbacks', function() {
+      test('calls onCancel', async function(assert) {
+        this.promise = new FakePromise();
+        this.onCancel = sinon.spy();
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @onCancel={{this.onCancel}} as |await|>
+            <button {{on "click" await.cancel}}>cancel</button>
+          </Await>
+        `);
+
+        assert.ok(this.onCancel.notCalled);
+
+        await click('button');
+
+        await settled();
+
+        assert.ok(this.onCancel.calledOnce);
+      });
+
+      test('calls onResolve', async function(assert) {
+        this.promise = new FakePromise();
+        this.onResolve = sinon.spy();
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @onResolve={{this.onResolve}} />
+        `);
+
+        assert.ok(this.onResolve.notCalled);
+
+        this.promise.resolve('works');
+
+        await settled();
+
+        assert.ok(this.onResolve.withArgs('works').calledOnce);
+      });
+
+      test('calls onReject', async function(assert) {
+        this.promise = new FakePromise();
+        this.onReject = sinon.spy();
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @onReject={{this.onReject}} />
+        `);
+
+        assert.ok(this.onReject.notCalled);
+
+        setupOnerror(() => {});
+        this.promise.reject(new Error('error'));
+
+        await settled();
+
+        assert.ok(this.onReject.calledOnce);
+        assert.equal(this.onReject.firstCall.args[0].message, 'error');
+      });
+    });
   });
 });
