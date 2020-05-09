@@ -18,21 +18,17 @@ class AwaitComponent extends Component {
 
   @computed('lastPromiseTask.value', 'isFulfilled', 'args.initialValue')
   get data() {
-    if (this.lastPromiseTask) {
-      return this.lastPromiseTask.value;
-    }
+    if (this.lastPromiseTask) return this.lastPromiseTask.value;
 
-    return this.isFulfilled && this.args.initialValue;
-  }
+    return this.isFulfilled ? this.args.initialValue : undefined;
+    }
 
   @computed('lastPromiseTask.error', 'isRejected', 'args.initialValue')
   get error() {
-    if (this.lastPromiseTask) {
-      return this.lastPromiseTask.error;
-    }
+    if (this.lastPromiseTask) return this.lastPromiseTask.error;
 
-    return this.isRejected && this.args.initialValue;
-  }
+    return this.isRejected ? this.args.initialValue : undefined;
+    }
 
   @computed('isFulfilled', 'error', 'data')
   get value() {
