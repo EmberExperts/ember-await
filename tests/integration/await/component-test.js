@@ -7,6 +7,18 @@ import { set } from '@ember/object';
 
 const resolveIn = (ms, value) => new Promise((r) => setTimeout(r, ms, value));
 
+function FakePromise() {
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    this.resolve = resolvePromise;
+    this.reject = rejectPromise;
+  });
+
+  promise.resolve = this.resolve;
+  promise.reject = this.reject;
+
+  return promise;
+}
+
 module('Integration | Component | await', function(hooks) {
   setupRenderingTest(hooks);
 
@@ -79,27 +91,71 @@ module('Integration | Component | await', function(hooks) {
 
     assert.dom().hasText('isInitial');
 
-    let promiseResolve;
+    let promise = new FakePromise();
 
-    set(this, 'promise', new Promise((r) => {
-      promiseResolve = r;
-    }));
+    set(this, 'promise', promise);
 
     await settled();
 
     assert.dom().hasText('isPending isLoading');
 
-    promiseResolve();
+    promise.resolve();
 
     await settled();
 
     assert.dom().hasText('isFulfilled isResolved isSettled');
 
-    set(this, 'promise', reject());
+    promise = new FakePromise();
+
+    set(this, 'promise', promise);
+
+    await settled();
+
+    assert.dom().hasText('isPending isLoading');
+
+    promise.reject();
 
     await settled();
 
     assert.dom().hasText('isRejected isSettled');
+  });
+
+  test('yields status', async function(assert) {
+    await render(hbs`
+      <Await @promise={{this.promise}} as |await|>
+        {{await.status}}
+      </Await>
+    `);
+
+    assert.dom().hasText('initial');
+
+    let promise = new FakePromise();
+
+    set(this, 'promise', promise);
+
+    await settled();
+
+    assert.dom().hasText('pending');
+
+    promise.resolve();
+
+    await settled();
+
+    assert.dom().hasText('fulfilled');
+
+    promise = new FakePromise();
+
+    set(this, 'promise', promise);
+
+    await settled();
+
+    assert.dom().hasText('pending');
+
+    promise.reject();
+
+    await settled();
+
+    assert.dom().hasText('rejected');
   });
 
   test('yields counter', async function(assert) {

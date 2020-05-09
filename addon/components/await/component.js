@@ -58,6 +58,15 @@ class AwaitComponent extends Component {
     return this.promiseTask.isRunning;
   }
 
+  @computed('isInitial', 'isPending', 'isFulfilled', 'isRejected')
+  get status() {
+    if (this.isRejected) return 'rejected';
+    if (this.isFulfilled) return 'fulfilled';
+    if (this.isPending) return 'pending';
+
+    return 'initial';
+  }
+
   constructor() {
     super(...arguments);
 

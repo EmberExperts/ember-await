@@ -6,7 +6,7 @@ These are yielded properties by `<Await />` component:
 - [`error`](#error) Rejected promise reason, cleared when new data arrives.
 - [`value`](#value) The value of `data` or `error`, whichever was last updated.
 - ~~[`initialValue`](#initialvalue) The data or error that was provided through the `initialValue` argument.~~
-- ~~[`status`](#status) One of: `initial`, `pending`, `fulfilled`, `rejected`.~~
+- [`status`](#status) One of: `initial`, `pending`, `fulfilled`, `rejected`.
 - [`isInitial`](#isinitial) true when no promise has ever started, or one started but was cancelled.
 - [`isPending`](#ispending) true when a promise is currently awaiting settlement. Alias: `isLoading`
 - [`isFulfilled`](#isfulfilled) true when the last promise was fulfilled. Alias: `isResolved`
@@ -35,6 +35,12 @@ Rejected promise reason, cleared when new data arrives.
 > `any | Error`
 
 The data or error that was last provided \(either through `initialValue` or by settling a promise\).
+
+## `status`
+
+> `string`
+
+One of: `initial`, `pending`, `fulfilled`, `rejected`.
 
 ## `isInitial`
 
