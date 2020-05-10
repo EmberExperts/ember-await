@@ -28,50 +28,34 @@ class AwaitComponent extends Component {
     return this.promiseTask.performCount;
   }
 
-  @computed('promiseTask.lastComplete.value', 'isFulfilled', 'args.initialValue')
+  @computed('promiseTask.{lastComplete.value,lastSuccessful.value}', 'isFulfilled', 'args.initialValue')
   get data() {
-    if (this.promiseTask.lastComplete) return this.promiseTask.lastComplete.value;
+    const { lastComplete, lastSuccessful } = this.promiseTask;
+
+    if (lastComplete && lastComplete.isError && lastSuccessful) return lastSuccessful.value;
+    if (lastComplete) return lastComplete.value;
 
     return this.isFulfilled ? this.args.initialValue : undefined;
   }
 
-  @computed('promiseTask.lastSuccessful.value', 'isRejected', 'data')
-  get persistedData() {
-    if (this.isRejected && this.promiseTask.lastSuccessful) return this.promiseTask.lastSuccessful.value;
-
-    return this.data;
-  }
-
-  @computed('promiseTask.lastComplete.error', 'isRejected', 'args.initialValue')
+  @computed('promiseTask.{lastComplete.error,lastErrored.error}', 'isPending', 'isRejected', 'args.initialValue')
   get error() {
-    if (this.promiseTask.lastComplete) return this.promiseTask.lastComplete.error;
+    const { lastComplete, lastErrored } = this.promiseTask;
+
+    if (this.isPending && lastErrored) return lastErrored.error;
+    if (lastComplete) return lastComplete.error;
 
     return this.isRejected ? this.args.initialValue : undefined;
   }
 
-  @computed('promiseTask.lastErrored.value', 'isPending', 'error')
-  get persistedError() {
-    if (this.isPending && this.promiseTask.lastErrored) return this.promiseTask.lastErrored.error;
-
-    return this.error;
-  }
-
-  @computed('isFulfilled', 'isPending', 'error', 'data')
+  @computed('promiseTask.lastComplete.isError', 'isFulfilled', 'error', 'data')
   get value() {
-    if (this.isPending) return undefined;
-
     const { isFulfilled, error, data } = this;
+    const { lastComplete } = this.promiseTask;
+
+    if (lastComplete) return lastComplete.isError ? error : data;
 
     return isFulfilled ? data : error;
-  }
-
-  @computed('promiseTask.lastComplete.isError', 'isPending', 'data')
-  get persistedValue() {
-    if (this.promiseTask.lastComplete) {
-      return this.promiseTask.lastComplete.isError ? this.error : this.data;
-    }
-
-    return this.value;
   }
 
   @computed('promiseTask.last.isSuccessful')

@@ -15,8 +15,21 @@ function FakePromise() {
     this.reject = rejectPromise;
   });
 
-  promise.resolve = this.resolve;
-  promise.reject = this.reject;
+  promise.resolve = async(...args) => {
+    const result = await this.resolve(...args);
+
+    await settled();
+
+    return result;
+  };
+
+  promise.reject = async(...args) => {
+    const result = await this.reject(...args);
+
+    await settled();
+
+    return result;
+  };
 
   return promise;
 }
@@ -30,7 +43,7 @@ module('Integration | Component | await', function(hooks) {
 
   module('Yielded properties', function() {
     test('yields data', async function(assert) {
-      set(this, 'promise', resolve('data'));
+      this.promise = new FakePromise();
 
       await render(hbs`
         <Await @promise={{this.promise}} as |await|>
@@ -38,13 +51,25 @@ module('Integration | Component | await', function(hooks) {
         </Await>
       `);
 
-      await settled();
+      assert.dom().hasText('');
+
+      await this.promise.resolve('data');
+
+      assert.dom().hasText('data');
+
+      set(this, 'promise', new FakePromise());
+
+      assert.dom().hasText('data');
+
+      setupOnerror(() => {});
+      await this.promise.reject('error');
+
       assert.dom().hasText('data');
     });
 
     test('yields error', async function(assert) {
       setupOnerror(() => {});
-      set(this, 'promise', reject('error'));
+      this.promise = new FakePromise();
 
       await render(hbs`
         <Await @promise={{this.promise}} as |await|>
@@ -52,7 +77,19 @@ module('Integration | Component | await', function(hooks) {
         </Await>
       `);
 
+      assert.dom().hasText('');
+
+      await this.promise.reject('error');
+
       assert.dom().hasText('error');
+
+      set(this, 'promise', new FakePromise());
+
+      assert.dom().hasText('error');
+
+      await this.promise.resolve('data');
+
+      assert.dom().hasText('');
     });
 
     test('yields value when error', async function(assert) {

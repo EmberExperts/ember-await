@@ -1,7 +1,7 @@
 {{yield (hash
-  data=this.persistedData
-  error=this.persistedError
-  value=this.persistedValue
+  data=this.data
+  error=this.error
+  value=this.value
   initialValue=@initialValue
 
   startedAt=this.startedAt
@@ -22,11 +22,11 @@
   cancel=this.cancel
   run=this.run
 
-  Pending=(component "await/pending" shouldRender=this.isPending value=this.persistedValue)
-  Loading=(component "await/pending" shouldRender=this.isPending value=this.persistedValue)
-  Fulfilled=(component "await/complete" shouldRender=this.isFulfilled value=this.persistedData)
-  Resolved=(component "await/complete" shouldRender=this.isFulfilled value=this.persistedData)
-  Rejected=(component "await/complete" shouldRender=this.isRejected value=this.persistedError)
-  Settled=(component "await/complete" shouldRender=this.isSettled value=this.persistedValue)
-  Initial=(component "await/initial" shouldRender=this.isInitial value=this.persistedData)
+  Pending=(component "await/pending" shouldRender=this.isPending value=this.value)
+  Loading=(component "await/pending" shouldRender=this.isPending value=this.value)
+  Fulfilled=(component "await/complete" shouldRender=this.isFulfilled value=this.data)
+  Resolved=(component "await/complete" shouldRender=this.isFulfilled value=this.data)
+  Rejected=(component "await/complete" shouldRender=this.isRejected value=this.error)
+  Settled=(component "await/complete" shouldRender=this.isSettled value=this.value)
+  Initial=(component "await/initial" shouldRender=this.isInitial value=this.data)
 )}}
