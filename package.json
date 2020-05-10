@@ -1,6 +1,6 @@
 {
   "name": "ember-await",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Await component for Ember Applications",
   "keywords": [
     "ember-addon"
