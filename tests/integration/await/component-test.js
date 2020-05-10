@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
-import { render, click, settled, setupOnerror, resetOnerror } from '@ember/test-helpers';
+import { render, click, find, settled, setupOnerror, resetOnerror } from '@ember/test-helpers';
 import { hbs } from 'ember-cli-htmlbars';
 import { Promise, resolve, reject } from 'rsvp';
 import { set } from '@ember/object';
@@ -86,6 +86,38 @@ module('Integration | Component | await', function(hooks) {
       `);
 
       assert.dom().hasText('initialValue');
+    });
+
+    test('yields dates', async function(assert) {
+      this.promise = new FakePromise();
+
+      await render(hbs`
+        <Await @promise={{this.promise}} as |await|>
+          <span data-test-started>{{await.startedAt}}</span>
+          <span data-test-finished>{{await.finishedAt}}</span>
+        </Await>
+      `);
+
+      let started = await find('[data-test-started]').innerText;
+      let finished = await find('[data-test-finished]').innerText;
+
+      assert.ok(started);
+      assert.notOk(finished);
+
+      await resolveIn(1000);
+      await this.promise.resolve();
+      await settled();
+
+      started = await find('[data-test-started]').innerText;
+      finished = await find('[data-test-finished]').innerText;
+
+      assert.ok(started);
+      assert.ok(finished);
+
+      const startedAt = new Date(started);
+      const finishedAt = new Date(finished);
+
+      assert.ok(startedAt.getTime() < finishedAt.getTime());
     });
 
     test('yields promise states', async function(assert) {

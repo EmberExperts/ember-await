@@ -3,8 +3,11 @@
   error=this.error
   value=this.value
   initialValue=@initialValue
-  status=this.status
 
+  startedAt=this.startedAt
+  finishedAt=this.finishedAt
+
+  status=this.status
   isPending=this.isPending
   isLoading=this.isPending
   isFulfilled=this.isFulfilled
@@ -14,7 +17,7 @@
   isInitial=this.isInitial
 
   counter=this.counter
-  task=this.promiseTask.last
+  task=this.lastPromiseTask
   reload=this.reload
   cancel=this.cancel
   run=this.run

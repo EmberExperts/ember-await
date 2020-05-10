@@ -1,6 +1,7 @@
 /* eslint-disable ember/no-observers */
 /* eslint-disable ember/no-computed-properties-in-native-classes */
 import Component from '@glimmer/component';
+import { tracked } from '@glimmer/tracking';
 import { computed, action } from '@ember/object';
 import { task } from 'ember-concurrency-decorators';
 import { addObserver, removeObserver } from '@ember/object/observers';
@@ -18,6 +19,10 @@ function isDefined(value) {
 }
 
 class AwaitComponent extends Component {
+  @tracked startedAt;
+
+  @tracked finishedAt;
+
   @computed('promiseTask.last')
   get lastPromiseTask() {
     return this.promiseTask.last;
@@ -116,13 +121,27 @@ class AwaitComponent extends Component {
    * Used for handling ember-concurrency events
    *
    * @protected
-   * @param {*} name
-   * @memberof AwaitComponent
    */
-  trigger(name) {
-    if (name === 'promiseTask:canceled') callFunction(this.args.onCancel);
-    if (name === 'promiseTask:succeeded') callFunction(this.args.onResolve, this.data);
-    if (name === 'promiseTask:errored') callFunction(this.args.onReject, this.error);
+  trigger(name, currentTask) {
+    if (this.lastPromiseTask && currentTask !== this.lastPromiseTask) return;
+
+    if (name === 'promiseTask:started') {
+      this.startedAt = new Date();
+    }
+
+    if (name === 'promiseTask:canceled') {
+      callFunction(this.args.onCancel);
+    }
+
+    if (name === 'promiseTask:succeeded') {
+      this.finishedAt = new Date();
+      callFunction(this.args.onResolve, this.data);
+    }
+
+    if (name === 'promiseTask:errored') {
+      this.finishedAt = new Date();
+      callFunction(this.args.onReject, this.error);
+    }
   }
 
   @task({ restartable: true, evented: true })
