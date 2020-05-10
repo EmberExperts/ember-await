@@ -149,15 +149,13 @@ class AwaitComponent extends Component {
   }
 
   @task({ restartable: true, evented: true })
-  *promiseTask(promise) {
-    return yield isFunction(promise) ? promise() : promise;
+  *promiseTask(promise, ...args) {
+    return yield isFunction(promise) ? promise(...args) : promise;
   }
 
   @action
-  run() {
-    const { promiseTask, args } = this;
-
-    promiseTask.perform(args.defer);
+  run(...args) {
+    this.promiseTask.perform(this.args.defer, ...args);
   }
 
   @action
