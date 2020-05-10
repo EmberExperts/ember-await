@@ -89,8 +89,10 @@ Here we define `fetchPosts` which looks identically to previous `model()` hook. 
 // app/components/posts-list.js
 
 import Component from '@glimmer/component';
+import { action } from '@ember/object';
 
 class PostsComponent extends Component {
+  @action
   async fetchPosts() {
     const response = await fetch('/posts');
     return response.json();
