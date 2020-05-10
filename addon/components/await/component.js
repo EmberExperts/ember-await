@@ -60,9 +60,7 @@ class AwaitComponent extends Component {
 
   @computed('promiseTask.last.isSuccessful')
   get isFulfilled() {
-    if (this.promiseTask.last) {
-      return this.promiseTask.last.isSuccessful;
-    }
+    if (this.promiseTask.last) return this.promiseTask.last.isSuccessful;
 
     const { initialValue } = this.args;
 
@@ -71,9 +69,7 @@ class AwaitComponent extends Component {
 
   @computed('promiseTask.last.isError')
   get isRejected() {
-    if (this.promiseTask.last) {
-      return this.promiseTask.last.isError;
-    }
+    if (this.promiseTask.last) return this.promiseTask.last.isError;
 
     const { initialValue } = this.args;
 
@@ -110,9 +106,7 @@ class AwaitComponent extends Component {
 
     addObserver(this, 'args.promise', this._resolvePromise);
 
-    if (this.args.promise && !isDefined(this.args.initialValue)) {
-      this._resolvePromise();
-    }
+    if (this.args.promise && !isDefined(this.args.initialValue)) this._resolvePromise();
   }
 
   willDestroy() {
@@ -128,14 +122,8 @@ class AwaitComponent extends Component {
    */
   trigger(name, currentTask) {
     if (this.promiseTask.last && currentTask !== this.promiseTask.last) return;
-
-    if (name === 'promiseTask:started') {
-      this.startedAt = new Date();
-    }
-
-    if (name === 'promiseTask:canceled') {
-      callFunction(this.args.onCancel);
-    }
+    if (name === 'promiseTask:started') this.startedAt = new Date();
+    if (name === 'promiseTask:canceled') callFunction(this.args.onCancel);
 
     if (name === 'promiseTask:succeeded') {
       this.finishedAt = new Date();
