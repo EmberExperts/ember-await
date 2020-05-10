@@ -23,41 +23,61 @@ class AwaitComponent extends Component {
 
   @tracked finishedAt;
 
-  @computed('promiseTask.last')
-  get lastPromiseTask() {
-    return this.promiseTask.last;
-  }
-
   @computed('promiseTask.performCount')
   get counter() {
     return this.promiseTask.performCount;
   }
 
-  @computed('lastPromiseTask.value', 'isFulfilled', 'args.initialValue')
+  @computed('promiseTask.lastComplete.value', 'isFulfilled', 'args.initialValue')
   get data() {
-    if (this.lastPromiseTask) return this.lastPromiseTask.value;
+    if (this.promiseTask.lastComplete) return this.promiseTask.lastComplete.value;
 
     return this.isFulfilled ? this.args.initialValue : undefined;
   }
 
-  @computed('lastPromiseTask.error', 'isRejected', 'args.initialValue')
+  @computed('promiseTask.lastSuccessful.value', 'isRejected', 'data')
+  get persistedData() {
+    if (this.isRejected && this.promiseTask.lastSuccessful) return this.promiseTask.lastSuccessful.value;
+
+    return this.data;
+  }
+
+  @computed('promiseTask.lastComplete.error', 'isRejected', 'args.initialValue')
   get error() {
-    if (this.lastPromiseTask) return this.lastPromiseTask.error;
+    if (this.promiseTask.lastComplete) return this.promiseTask.lastComplete.error;
 
     return this.isRejected ? this.args.initialValue : undefined;
   }
 
-  @computed('isFulfilled', 'error', 'data')
+  @computed('promiseTask.lastErrored.value', 'isPending', 'error')
+  get persistedError() {
+    if (this.isPending && this.promiseTask.lastErrored) return this.promiseTask.lastErrored.error;
+
+    return this.error;
+  }
+
+  @computed('isFulfilled', 'isPending', 'error', 'data')
   get value() {
+    if (this.isPending) return undefined;
+
     const { isFulfilled, error, data } = this;
 
     return isFulfilled ? data : error;
   }
 
-  @computed('lastPromiseTask.isSuccessful')
+  @computed('promiseTask.lastComplete.isError', 'isPending', 'data')
+  get persistedValue() {
+    if (this.promiseTask.lastComplete) {
+      return this.promiseTask.lastComplete.isError ? this.error : this.data;
+    }
+
+    return this.value;
+  }
+
+  @computed('promiseTask.last.isSuccessful')
   get isFulfilled() {
-    if (this.lastPromiseTask) {
-      return this.lastPromiseTask.isSuccessful;
+    if (this.promiseTask.last) {
+      return this.promiseTask.last.isSuccessful;
     }
 
     const { initialValue } = this.args;
@@ -65,10 +85,10 @@ class AwaitComponent extends Component {
     return isDefined(initialValue) && !(initialValue instanceof Error);
   }
 
-  @computed('lastPromiseTask.isError')
+  @computed('promiseTask.last.isError')
   get isRejected() {
-    if (this.lastPromiseTask) {
-      return this.lastPromiseTask.isError;
+    if (this.promiseTask.last) {
+      return this.promiseTask.last.isError;
     }
 
     const { initialValue } = this.args;
@@ -123,7 +143,7 @@ class AwaitComponent extends Component {
    * @protected
    */
   trigger(name, currentTask) {
-    if (this.lastPromiseTask && currentTask !== this.lastPromiseTask) return;
+    if (this.promiseTask.last && currentTask !== this.promiseTask.last) return;
 
     if (name === 'promiseTask:started') {
       this.startedAt = new Date();

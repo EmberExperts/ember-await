@@ -7,6 +7,7 @@ import { set } from '@ember/object';
 import sinon from 'sinon';
 
 const resolveIn = (ms, value) => new Promise((r) => setTimeout(r, ms, value));
+const rejectIn = (ms, value) => new Promise((_r, r) => setTimeout(r, ms, value));
 
 function FakePromise() {
   const promise = new Promise((resolvePromise, rejectPromise) => {
@@ -37,6 +38,7 @@ module('Integration | Component | await', function(hooks) {
         </Await>
       `);
 
+      await settled();
       assert.dom().hasText('data');
     });
 
@@ -276,6 +278,10 @@ module('Integration | Component | await', function(hooks) {
 
         await render(hbs`
           <Await @promise={{this.promise}} @defer={{this.defer}} as |await|>
+            <await.Pending>
+              pending
+            </await.Pending>
+
             <await.Fulfilled as |data|>
               <button {{on "click" await.run}}>{{data}}</button>
             </await.Fulfilled>
@@ -286,13 +292,47 @@ module('Integration | Component | await', function(hooks) {
           </Await>
         `);
 
-        assert.dom().hasText('');
+        assert.dom().hasText('pending');
         await resolveIn(10);
 
         assert.dom().hasText('ok');
 
         await click('button');
         assert.dom().hasText('fail');
+      });
+
+      test('with persist renders old data on error', async function(assert) {
+        setupOnerror(() => {});
+        this.promise = () => resolveIn(10, 'ok');
+        this.defer = () => rejectIn(10, 'fail');
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @defer={{this.defer}} as |await|>
+            <await.Pending>
+              pending
+            </await.Pending>
+
+            <await.Fulfilled @persist={{true}} as |data|>
+              <button {{on "click" await.run}}>{{data}}</button>
+            </await.Fulfilled>
+
+            <await.Rejected as |error|>
+              {{error}}
+            </await.Rejected>
+          </Await>
+        `);
+
+        assert.dom().hasText('pending');
+        await resolveIn(10);
+
+        assert.dom().hasText('ok');
+
+        await click('button');
+
+        assert.dom().hasText('pending ok');
+        await resolveIn(10);
+
+        assert.dom().hasText('ok fail');
       });
     });
 
@@ -304,6 +344,10 @@ module('Integration | Component | await', function(hooks) {
 
         await render(hbs`
           <Await @promise={{this.promise}} @defer={{this.defer}} as |await|>
+            <await.Pending>
+              pending
+            </await.Pending>
+
             <await.Resolved as |data|>
               <button {{on "click" await.run}}>{{data}}</button>
             </await.Resolved>
@@ -314,13 +358,47 @@ module('Integration | Component | await', function(hooks) {
           </Await>
         `);
 
-        assert.dom().hasText('');
+        assert.dom().hasText('pending');
         await resolveIn(10);
 
         assert.dom().hasText('ok');
 
         await click('button');
         assert.dom().hasText('fail');
+      });
+
+      test('with persist renders old data on error', async function(assert) {
+        setupOnerror(() => {});
+        this.promise = resolveIn(10, 'ok');
+        this.defer = () => rejectIn(10, 'fail');
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @defer={{this.defer}} as |await|>
+            <await.Pending>
+              pending
+            </await.Pending>
+
+            <await.Resolved @persist={{true}} as |data|>
+              <button {{on "click" await.run}}>{{data}}</button>
+            </await.Resolved>
+
+            <await.Rejected as |error|>
+              {{error}}
+            </await.Rejected>
+          </Await>
+        `);
+
+        assert.dom().hasText('pending');
+        await resolveIn(10);
+
+        assert.dom().hasText('ok');
+
+        await click('button');
+
+        assert.dom().hasText('pending ok');
+        await resolveIn(10);
+
+        assert.dom().hasText('ok fail');
       });
     });
 
@@ -339,6 +417,39 @@ module('Integration | Component | await', function(hooks) {
         await resolveIn(10);
         assert.dom().hasText('done');
       });
+
+      test('with persist renders only on initial load (when data is undefined)', async function(assert) {
+        setupOnerror(() => {});
+        this.promise = () => resolveIn(10, 'ok');
+        this.defer = () => resolveIn(10, 'ok2');
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @defer={{this.defer}} as |await|>
+            <button {{on "click" await.run}}></button>
+
+            <await.Pending @initial={{true}}>
+              pending
+            </await.Pending>
+
+            <await.Settled as |value|>
+              {{value}}
+            </await.Settled>
+          </Await>
+        `);
+
+        assert.dom().hasText('pending');
+        await resolveIn(10);
+
+        assert.dom().hasText('ok');
+
+        await click('button');
+
+        assert.dom().hasText('');
+
+        await resolveIn(10);
+
+        assert.dom().hasText('ok2');
+      });
     });
 
     module('Loading', function() {
@@ -356,6 +467,39 @@ module('Integration | Component | await', function(hooks) {
         await resolveIn(10);
         assert.dom().hasText('done');
       });
+
+      test('with persist renders only on initial load (when data is undefined)', async function(assert) {
+        setupOnerror(() => {});
+        this.promise = () => resolveIn(10, 'ok');
+        this.defer = () => resolveIn(10, 'ok2');
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @defer={{this.defer}} as |await|>
+            <button {{on "click" await.run}}></button>
+
+            <await.Loading @initial={{true}}>
+              pending
+            </await.Loading>
+
+            <await.Settled as |value|>
+              {{value}}
+            </await.Settled>
+          </Await>
+        `);
+
+        assert.dom().hasText('pending');
+        await resolveIn(10);
+
+        assert.dom().hasText('ok');
+
+        await click('button');
+
+        assert.dom().hasText('');
+
+        await resolveIn(10);
+
+        assert.dom().hasText('ok2');
+      });
     });
 
     module('Rejected', function() {
@@ -370,6 +514,43 @@ module('Integration | Component | await', function(hooks) {
         `);
 
         assert.dom().hasText('error');
+      });
+
+      test('with persist renders old error while loading', async function(assert) {
+        setupOnerror(() => {});
+        this.promise = rejectIn(10, 'fail');
+        this.defer = () => resolveIn(10, 'ok');
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @defer={{this.defer}} as |await|>
+            <button {{on "click" await.run}}></button>
+
+            <await.Pending>
+              pending
+            </await.Pending>
+
+            <await.Fulfilled as |data|>
+              {{data}}
+            </await.Fulfilled>
+
+            <await.Rejected @persist={{true}} as |error|>
+              {{error}}
+            </await.Rejected>
+          </Await>
+        `);
+
+        assert.dom().hasText('pending');
+        await resolveIn(10);
+
+        assert.dom().hasText('fail');
+
+        await click('button');
+
+        assert.dom().hasText('pending fail');
+
+        await resolveIn(10);
+
+        assert.dom().hasText('ok');
       });
     });
 
@@ -393,6 +574,47 @@ module('Integration | Component | await', function(hooks) {
         assert.dom().hasText('pending');
         await resolveIn(100);
         assert.dom().hasText('done');
+      });
+
+      test('with persist renders as long as there is no data', async function(assert) {
+        setupOnerror(() => {});
+        this.promise = rejectIn(10, 'fail');
+        this.defer = () => resolveIn(10, 'ok');
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @defer={{this.defer}} as |await|>
+            <button {{on "click" await.run}}></button>
+
+            <await.Initial @persist={{true}}>
+              initial
+            </await.Initial>
+
+            <await.Pending>
+              pending
+            </await.Pending>
+
+            <await.Fulfilled as |data|>
+              {{data}}
+            </await.Fulfilled>
+
+            <await.Rejected as |error|>
+              {{error}}
+            </await.Rejected>
+          </Await>
+        `);
+
+        assert.dom().hasText('initial pending');
+        await resolveIn(10);
+
+        assert.dom().hasText('initial fail');
+
+        await click('button');
+
+        assert.dom().hasText('initial pending');
+
+        await resolveIn(10);
+
+        assert.dom().hasText('ok');
       });
     });
 
@@ -420,6 +642,39 @@ module('Integration | Component | await', function(hooks) {
         `);
 
         assert.dom().hasText('error');
+      });
+
+      test('with persist renders old value while loading', async function(assert) {
+        setupOnerror(() => {});
+        this.promise = rejectIn(10, 'fail');
+        this.defer = () => resolveIn(10, 'ok');
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @defer={{this.defer}} as |await|>
+            <button {{on "click" await.run}}></button>
+
+            <await.Pending>
+              pending
+            </await.Pending>
+
+            <await.Settled @persist={{true}} as |value|>
+              {{value}}
+            </await.Settled>
+          </Await>
+        `);
+
+        assert.dom().hasText('pending');
+        await resolveIn(10);
+
+        assert.dom().hasText('fail');
+
+        await click('button');
+
+        assert.dom().hasText('pending fail');
+
+        await resolveIn(10);
+
+        assert.dom().hasText('ok');
       });
     });
   });

@@ -8,7 +8,7 @@ Renders only while the deferred promise is still waiting to be run, or you have 
 
 ### Arguments
 
-- ~~`persist` `boolean` Show until we have data, even while loading or when an error occurred. By default it hides as soon as the promise starts loading.~~
+- `persist` `boolean` Show until we have data, even while loading or when an error occurred. By default it hides as soon as the promise starts loading.
 
 ### Examples
 
@@ -28,7 +28,7 @@ Alias: `<Await.Loading>`
 
 ### Arguments
 
-- ~~`initial` `boolean` Show only on initial load \(when `data` is `undefined`\).~~
+- `initial` `boolean` Show only on initial load \(when `data` is `undefined`\).
 
 ### Examples
 
@@ -52,7 +52,7 @@ Alias: `<Await.Resolved>`
 
 ### Arguments
 
-- ~~`persist` `boolean` Show old data while loading new data. By default it hides as soon as a new promise starts.~~
+- `persist` `boolean` Show old data while loading new data. By default it hides as soon as a new promise starts.
 
 ### Examples
 
@@ -74,7 +74,7 @@ This component renders only when the promise is rejected.
 
 ### Arguments
 
-- ~~`persist` `boolean` Show old error while loading new data. By default it hides as soon as a new promise starts.~~
+- `persist` `boolean` Show old error while loading new data. By default it hides as soon as a new promise starts.
 
 ### Examples
 
@@ -92,7 +92,7 @@ This component renders only when the promise is settled (resolved or rejected).
 
 ### Arguments
 
-- ~~`persist` `boolean` Show old error while loading new data. By default it hides as soon as a new promise starts.~~
+- `persist` `boolean` Show old error or data while loading new data. By default it hides as soon as a new promise starts.
 
 ### Examples
 
