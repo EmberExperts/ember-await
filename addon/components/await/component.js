@@ -23,37 +23,38 @@ class AwaitComponent extends Component {
 
   @tracked finishedAt;
 
+  @tracked lastFinished;
+
   @computed('promiseTask.performCount')
   get counter() {
     return this.promiseTask.performCount;
   }
 
-  @computed('promiseTask.{lastComplete.value,lastSuccessful.value}', 'isFulfilled', 'args.initialValue')
+  @computed('promiseTask.lastSuccessful.value', 'lastFinished.{isError,value}', 'isFulfilled', 'args.initialValue')
   get data() {
-    const { lastComplete, lastSuccessful } = this.promiseTask;
+    const { lastSuccessful } = this.promiseTask;
 
-    if (lastComplete && lastComplete.isError && lastSuccessful) return lastSuccessful.value;
-    if (lastComplete) return lastComplete.value;
+    if (this.lastFinished && this.lastFinished.isError && lastSuccessful) return lastSuccessful.value;
+    if (this.lastFinished) return this.lastFinished.value;
 
     return this.isFulfilled ? this.args.initialValue : undefined;
   }
 
-  @computed('promiseTask.{lastComplete.error,lastErrored.error}', 'isPending', 'isRejected', 'args.initialValue')
+  @computed('promiseTask.lastErrored.error', 'lastFinished.error', 'isPending', 'isRejected', 'args.initialValue')
   get error() {
-    const { lastComplete, lastErrored } = this.promiseTask;
+    const { lastErrored } = this.promiseTask;
 
     if (this.isPending && lastErrored) return lastErrored.error;
-    if (lastComplete) return lastComplete.error;
+    if (this.lastFinished) return this.lastFinished.error;
 
     return this.isRejected ? this.args.initialValue : undefined;
   }
 
-  @computed('promiseTask.lastComplete.isError', 'isFulfilled', 'error', 'data')
+  @computed('lastFinished.isError', 'isFulfilled', 'error', 'data')
   get value() {
-    const { isFulfilled, error, data } = this;
-    const { lastComplete } = this.promiseTask;
+    const { lastFinished, isFulfilled, error, data } = this;
 
-    if (lastComplete) return lastComplete.isError ? error : data;
+    if (lastFinished) return lastFinished.isError ? error : data;
 
     return isFulfilled ? data : error;
   }
@@ -127,11 +128,13 @@ class AwaitComponent extends Component {
 
     if (name === 'promiseTask:succeeded') {
       this.finishedAt = new Date();
+      this.lastFinished = currentTask;
       callFunction(this.args.onResolve, this.data);
     }
 
     if (name === 'promiseTask:errored') {
       this.finishedAt = new Date();
+      this.lastFinished = currentTask;
       callFunction(this.args.onReject, this.error);
     }
   }
