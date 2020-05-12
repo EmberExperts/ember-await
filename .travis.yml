@@ -8,6 +8,9 @@ node_js:
 dist: trusty
 
 addons:
+  apt:
+    packages:
+      - dpkg
   chrome: stable
 
 cache:
