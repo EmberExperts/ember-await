@@ -141,7 +141,7 @@ class AwaitComponent extends Component {
 
   @task({ restartable: true, evented: true })
   *promiseTask(value) {
-    const controller = new AbortController();
+    const controller = new window.AbortController();
     const promiseFn = isFunction(value) ? value : () => value;
 
     try {
