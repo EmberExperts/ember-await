@@ -41,268 +41,526 @@ module('Integration | Component | await', function(hooks) {
     resetOnerror();
   });
 
+  module('Arguments', function() {
+    module('promise', function() {
+      test('receives abort controller which can abort', async function(assert) {
+        this.promise = () => new FakePromise();
+
+        const spy = sinon.spy(this, 'promise');
+
+        await render(hbs`
+          <Await @promise={{this.promise}} as |await|>
+            {{await.status}}
+            <button {{on "click" await.cancel }}></button>
+          </Await>
+        `);
+
+        assert.strictEqual(spy.calledOnce, true);
+
+        const [controller] = spy.firstCall.args;
+
+        assert.strictEqual(controller instanceof AbortController, true);
+        assert.strictEqual(controller.signal.aborted, false);
+
+        await click('button');
+
+        assert.strictEqual(controller.signal.aborted, true);
+      });
+    });
+
+    module('initialValue', function() {
+      test('promise is not called on render', async function(assert) {
+        const spy = sinon.spy();
+
+        this.promise = () => {
+          spy();
+          resolve();
+        };
+
+        this.initialValue = 'initialValue';
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @initialValue={{this.initialValue}} />
+        `);
+
+        assert.ok(spy.notCalled);
+      });
+
+      test('state is resolved and data is equal to initialValue', async function(assert) {
+        this.promise = () => resolve();
+        this.initialValue = 'initialValue';
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @initialValue={{this.initialValue}} as |await|>
+            {{await.status}}
+
+            <await.Initial>
+              Initial
+            </await.Initial>
+
+            <await.Pending>
+              Pending
+            </await.Pending>
+
+            <await.Fulfilled as |value|>
+              Value: {{value}}
+            </await.Fulfilled>
+
+            <await.Rejected as |error|>
+              Error: {{error.message}}
+            </await.Rejected>
+          </Await>
+        `);
+
+        assert.dom().hasText('fulfilled Value: initialValue');
+      });
+
+      test('state is rejected and error is equal to initialValue if initialValue is Error', async function(assert) {
+        this.promise = () => resolve();
+        this.initialValue = new Error('initialValue');
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @initialValue={{this.initialValue}} as |await|>
+            {{await.status}}
+
+            <await.Initial>
+              Initial
+            </await.Initial>
+
+            <await.Pending>
+              Pending
+            </await.Pending>
+
+            <await.Fulfilled as |value|>
+              Value: {{value}}
+            </await.Fulfilled>
+
+            <await.Rejected as |error|>
+              Error: {{error.message}}
+            </await.Rejected>
+          </Await>
+        `);
+
+        assert.dom().hasText('rejected Error: initialValue');
+      });
+    });
+
+    module('onCancel', function() {
+      test('calls when task has been cancelled', async function(assert) {
+        this.promise = new FakePromise();
+        this.onCancel = sinon.spy();
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @onCancel={{this.onCancel}} as |await|>
+            <button {{on "click" await.cancel}}>cancel</button>
+          </Await>
+        `);
+
+        assert.ok(this.onCancel.notCalled);
+
+        await click('button');
+
+        await settled();
+
+        assert.ok(this.onCancel.calledOnce);
+      });
+    });
+
+    module('onResolve', function() {
+      test('calls when promise has been resolved', async function(assert) {
+        this.promise = new FakePromise();
+        this.onResolve = sinon.spy();
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @onResolve={{this.onResolve}} />
+        `);
+
+        assert.ok(this.onResolve.notCalled);
+
+        this.promise.resolve('works');
+
+        await settled();
+
+        assert.ok(this.onResolve.withArgs('works').calledOnce);
+      });
+    });
+
+    module('onReject', function() {
+      test('calls when promise has been rejected', async function(assert) {
+        this.promise = new FakePromise();
+        this.onReject = sinon.spy();
+
+        await render(hbs`
+          <Await @promise={{this.promise}} @onReject={{this.onReject}} />
+        `);
+
+        assert.ok(this.onReject.notCalled);
+
+        setupOnerror(() => {});
+        this.promise.reject(new Error('error'));
+
+        await settled();
+
+        assert.ok(this.onReject.calledOnce);
+        assert.equal(this.onReject.firstCall.args[0].message, 'error');
+      });
+    });
+  });
+
   module('Yielded properties', function() {
-    test('yields data', async function(assert) {
-      this.promise = new FakePromise();
+    module('data', function() {
+      test('yields data', async function(assert) {
+        this.promise = new FakePromise();
 
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          {{await.data}}
-        </Await>
-      `);
+        await render(hbs`
+          <Await @promise={{this.promise}} as |await|>
+            {{await.data}}
+          </Await>
+        `);
 
-      assert.dom().hasText('');
+        assert.dom().hasText('');
 
-      await this.promise.resolve('data');
+        await this.promise.resolve('data');
 
-      assert.dom().hasText('data');
+        assert.dom().hasText('data');
 
-      set(this, 'promise', new FakePromise());
+        set(this, 'promise', new FakePromise());
 
-      assert.dom().hasText('data');
+        assert.dom().hasText('data');
 
-      setupOnerror(() => {});
-      await this.promise.reject('error');
+        setupOnerror(() => {});
+        await this.promise.reject('error');
 
-      assert.dom().hasText('data');
+        assert.dom().hasText('data');
+      });
     });
 
-    test('yields error', async function(assert) {
-      setupOnerror(() => {});
-      this.promise = new FakePromise();
+    module('error', function() {
+      test('yields error', async function(assert) {
+        setupOnerror(() => {});
+        this.promise = new FakePromise();
 
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          {{await.error}}
-        </Await>
-      `);
+        await render(hbs`
+          <Await @promise={{this.promise}} as |await|>
+            {{await.error}}
+          </Await>
+        `);
 
-      assert.dom().hasText('');
+        assert.dom().hasText('');
 
-      await this.promise.reject('error');
+        await this.promise.reject('error');
 
-      assert.dom().hasText('error');
+        assert.dom().hasText('error');
 
-      set(this, 'promise', new FakePromise());
+        set(this, 'promise', new FakePromise());
 
-      assert.dom().hasText('error');
+        assert.dom().hasText('error');
 
-      await this.promise.resolve('data');
+        await this.promise.resolve('data');
 
-      assert.dom().hasText('');
+        assert.dom().hasText('');
+      });
     });
 
-    test('yields value when error', async function(assert) {
-      setupOnerror(() => {});
-      set(this, 'promise', reject('error'));
+    module('value', function() {
+      test('yields value when error', async function(assert) {
+        setupOnerror(() => {});
+        set(this, 'promise', reject('error'));
 
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          {{await.value}}
-        </Await>
-      `);
+        await render(hbs`
+          <Await @promise={{this.promise}} as |await|>
+            {{await.value}}
+          </Await>
+        `);
 
-      assert.dom().hasText('error');
+        assert.dom().hasText('error');
+      });
+
+      test('yields value when fulfilled', async function(assert) {
+        set(this, 'promise', resolve('data'));
+
+        await render(hbs`
+          <Await @promise={{this.promise}} as |await|>
+            {{await.value}}
+          </Await>
+        `);
+
+        assert.dom().hasText('data');
+      });
     });
 
-    test('yields value when fulfilled', async function(assert) {
-      set(this, 'promise', resolve('data'));
+    module('initialValue', function() {
+      test('yields initialValue', async function(assert) {
+        await render(hbs`
+          <Await @initialValue='initialValue' as |await|>
+            {{await.initialValue}}
+          </Await>
+        `);
 
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          {{await.value}}
-        </Await>
-      `);
-
-      assert.dom().hasText('data');
+        assert.dom().hasText('initialValue');
+      });
     });
 
-    test('yields initialValue', async function(assert) {
-      await render(hbs`
-        <Await @initialValue='initialValue' as |await|>
-          {{await.initialValue}}
-        </Await>
-      `);
+    module('dates', function() {
+      test('yields dates', async function(assert) {
+        this.promise = new FakePromise();
 
-      assert.dom().hasText('initialValue');
+        await render(hbs`
+          <Await @promise={{this.promise}} as |await|>
+            <span data-test-started>{{await.startedAt}}</span>
+            <span data-test-finished>{{await.finishedAt}}</span>
+          </Await>
+        `);
+
+        let started = await find('[data-test-started]').innerText;
+        let finished = await find('[data-test-finished]').innerText;
+
+        assert.ok(started);
+        assert.notOk(finished);
+
+        await resolveIn(1000);
+        await this.promise.resolve();
+        await settled();
+
+        started = await find('[data-test-started]').innerText;
+        finished = await find('[data-test-finished]').innerText;
+
+        assert.ok(started);
+        assert.ok(finished);
+
+        const startedAt = new Date(started);
+        const finishedAt = new Date(finished);
+
+        assert.ok(startedAt.getTime() < finishedAt.getTime());
+      });
     });
 
-    test('yields dates', async function(assert) {
-      this.promise = new FakePromise();
+    module('promise states', function() {
+      test('yields promise states', async function(assert) {
+        await render(hbs`
+          <Await @promise={{this.promise}} as |await|>
+            {{if await.isInitial "isInitial"}}
+            {{if await.isPending "isPending"}}
+            {{if await.isLoading "isLoading"}}
+            {{if await.isRejected "isRejected"}}
+            {{if await.isFulfilled "isFulfilled"}}
+            {{if await.isResolved "isResolved"}}
+            {{if await.isSettled "isSettled"}}
+          </Await>
+        `);
 
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          <span data-test-started>{{await.startedAt}}</span>
-          <span data-test-finished>{{await.finishedAt}}</span>
-        </Await>
-      `);
+        assert.dom().hasText('isInitial');
 
-      let started = await find('[data-test-started]').innerText;
-      let finished = await find('[data-test-finished]').innerText;
+        let promise = new FakePromise();
 
-      assert.ok(started);
-      assert.notOk(finished);
+        set(this, 'promise', promise);
 
-      await resolveIn(1000);
-      await this.promise.resolve();
-      await settled();
+        await settled();
 
-      started = await find('[data-test-started]').innerText;
-      finished = await find('[data-test-finished]').innerText;
+        assert.dom().hasText('isPending isLoading');
 
-      assert.ok(started);
-      assert.ok(finished);
+        promise.resolve();
 
-      const startedAt = new Date(started);
-      const finishedAt = new Date(finished);
+        await settled();
 
-      assert.ok(startedAt.getTime() < finishedAt.getTime());
+        assert.dom().hasText('isFulfilled isResolved isSettled');
+
+        promise = new FakePromise();
+
+        set(this, 'promise', promise);
+
+        await settled();
+
+        assert.dom().hasText('isPending isLoading');
+
+        promise.reject();
+
+        await settled();
+
+        assert.dom().hasText('isRejected isSettled');
+      });
     });
 
-    test('yields promise states', async function(assert) {
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          {{if await.isInitial "isInitial"}}
-          {{if await.isPending "isPending"}}
-          {{if await.isLoading "isLoading"}}
-          {{if await.isRejected "isRejected"}}
-          {{if await.isFulfilled "isFulfilled"}}
-          {{if await.isResolved "isResolved"}}
-          {{if await.isSettled "isSettled"}}
-        </Await>
-      `);
+    module('status', function() {
+      test('yields status', async function(assert) {
+        await render(hbs`
+          <Await @promise={{this.promise}} as |await|>
+            {{await.status}}
+          </Await>
+        `);
 
-      assert.dom().hasText('isInitial');
+        assert.dom().hasText('initial');
 
-      let promise = new FakePromise();
+        let promise = new FakePromise();
 
-      set(this, 'promise', promise);
+        set(this, 'promise', promise);
 
-      await settled();
+        await settled();
 
-      assert.dom().hasText('isPending isLoading');
+        assert.dom().hasText('pending');
 
-      promise.resolve();
+        promise.resolve();
 
-      await settled();
+        await settled();
 
-      assert.dom().hasText('isFulfilled isResolved isSettled');
+        assert.dom().hasText('fulfilled');
 
-      promise = new FakePromise();
+        promise = new FakePromise();
 
-      set(this, 'promise', promise);
+        set(this, 'promise', promise);
 
-      await settled();
+        await settled();
 
-      assert.dom().hasText('isPending isLoading');
+        assert.dom().hasText('pending');
 
-      promise.reject();
+        promise.reject();
 
-      await settled();
+        await settled();
 
-      assert.dom().hasText('isRejected isSettled');
+        assert.dom().hasText('rejected');
+      });
     });
 
-    test('yields status', async function(assert) {
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          {{await.status}}
-        </Await>
-      `);
+    module('counter', function() {
+      test('yields counter', async function(assert) {
+        set(this, 'promise', resolve());
 
-      assert.dom().hasText('initial');
+        await render(hbs`
+          <Await @promise={{this.promise}} as |await|>
+            {{await.counter}}
+            {{if await.isFulfilled "isFulfilled"}}
+          </Await>
+        `);
 
-      let promise = new FakePromise();
-
-      set(this, 'promise', promise);
-
-      await settled();
-
-      assert.dom().hasText('pending');
-
-      promise.resolve();
-
-      await settled();
-
-      assert.dom().hasText('fulfilled');
-
-      promise = new FakePromise();
-
-      set(this, 'promise', promise);
-
-      await settled();
-
-      assert.dom().hasText('pending');
-
-      promise.reject();
-
-      await settled();
-
-      assert.dom().hasText('rejected');
+        assert.dom().hasText('1 isFulfilled');
+      });
     });
 
-    test('yields counter', async function(assert) {
-      set(this, 'promise', resolve());
+    module('task', function() {
+      test('yields current task', async function(assert) {
+        set(this, 'promise', resolve());
 
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          {{await.counter}}
-          {{if await.isFulfilled "isFulfilled"}}
-        </Await>
-      `);
+        await render(hbs`
+          <Await @promise={{this.promise}} as |await|>
+            {{if await.task.isSuccessful "isSuccessful"}}
+          </Await>
+        `);
 
-      assert.dom().hasText('1 isFulfilled');
+        assert.dom().hasText('isSuccessful');
+      });
     });
 
-    test('yields current task', async function(assert) {
-      set(this, 'promise', resolve());
+    module('reload', function() {
+      test('yields action', async function(assert) {
+        let count = 0;
 
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          {{if await.task.isSuccessful "isSuccessful"}}
-        </Await>
-      `);
+        set(this, 'promise', () => resolve(count += 1));
 
-      assert.dom().hasText('isSuccessful');
+        await render(hbs`
+          <Await @promise={{this.promise}} as |await|>
+            Counter: {{await.counter}}
+            Data: {{await.data}}
+            <button {{on "click" await.reload}}>Reload</button>
+          </Await>
+        `);
+
+        assert.dom().containsText('Counter: 1');
+        assert.dom().containsText('Data: 1');
+
+        await click('button');
+
+        assert.dom().containsText('Counter: 2');
+        assert.dom().containsText('Data: 2');
+      });
     });
 
-    test('yields reload action', async function(assert) {
-      let count = 0;
+    module('run', function() {
+      test('yields action', async function(assert) {
+        this.defer = () => resolveIn(10, 'data');
 
-      set(this, 'promise', () => resolve(count += 1));
+        await render(hbs`
+          <Await @defer={{this.defer}} as |await|>
+            <button {{on "click" await.run}}>
+              {{await.status}}
+              {{await.data}}
+            </button>
+          </Await>
+        `);
 
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          Counter: {{await.counter}}
-          Data: {{await.data}}
-          <button {{on "click" await.reload}}>Reload</button>
-        </Await>
-      `);
+        assert.dom().hasText('initial');
 
-      assert.dom().containsText('Counter: 1');
-      assert.dom().containsText('Data: 1');
+        await click('button');
 
-      await click('button');
+        assert.dom().hasText('pending');
 
-      assert.dom().containsText('Counter: 2');
-      assert.dom().containsText('Data: 2');
+        await resolveIn(10);
+
+        assert.dom().hasText('fulfilled data');
+      });
+
+      test('does not run defer if undefined', async function(assert) {
+        this.promise = resolve('data');
+
+        await render(hbs`
+          <Await @promise={{this.promise}} as |await|>
+            <button {{on "click" await.run}}>
+              {{await.status}}
+              {{await.data}}
+            </button>
+          </Await>
+        `);
+
+        assert.dom().hasText('fulfilled data');
+
+        await click('button');
+
+        assert.dom().hasText('fulfilled data');
+      });
+
+      test('receives passed arguments', async function(assert) {
+        this.defer = ([value]) => resolve(value);
+
+        const spy = sinon.spy(this, 'defer');
+
+        await render(hbs`
+          <Await @defer={{this.defer}} as |await|>
+            <button {{on "click" (fn await.run 'data')}}>
+              {{await.status}}
+              {{await.data}}
+            </button>
+          </Await>
+        `);
+
+        assert.dom().hasText('initial');
+
+        await click('button');
+
+        assert.dom().hasText('fulfilled data');
+
+        assert.strictEqual(spy.calledOnce, true);
+        assert.strictEqual(spy.firstCall.args[0][0], 'data');
+        assert.strictEqual(spy.firstCall.args[0][1] instanceof Event, true);
+        assert.strictEqual(spy.firstCall.args[1] instanceof AbortController, true);
+      });
     });
 
-    test('yields cancel action', async function(assert) {
-      set(this, 'promise', new Promise(() => {}));
+    module('cancel', function() {
+      test('yields action', async function(assert) {
+        set(this, 'promise', new Promise(() => {}));
 
-      await render(hbs`
-        <Await @promise={{this.promise}} as |await|>
-          {{if await.isPending "isPending"}}
-          <button {{on "click" await.cancel}}></button>
-        </Await>
-      `);
+        await render(hbs`
+          <Await @promise={{this.promise}} as |await|>
+            {{if await.isPending "isPending"}}
+            <button {{on "click" await.cancel}}></button>
+          </Await>
+        `);
 
-      assert.dom().hasText('isPending');
+        assert.dom().hasText('isPending');
 
-      await click('button');
+        await click('button');
 
-      assert.dom().hasText('');
+        assert.dom().hasText('');
+      });
     });
   });
 
@@ -755,140 +1013,6 @@ module('Integration | Component | await', function(hooks) {
       await settled();
 
       assert.dom().hasText('John Snow');
-    });
-
-    module('with initialValue', function() {
-      test('promise is not called on render', async function(assert) {
-        const spy = sinon.spy();
-
-        this.promise = () => {
-          spy();
-          resolve();
-        };
-
-        this.initialValue = 'initialValue';
-
-        await render(hbs`
-          <Await @promise={{this.promise}} @initialValue={{this.initialValue}} />
-        `);
-
-        assert.ok(spy.notCalled);
-      });
-
-      test('state is resolved and data is equal to initialValue', async function(assert) {
-        this.promise = () => resolve();
-        this.initialValue = 'initialValue';
-
-        await render(hbs`
-          <Await @promise={{this.promise}} @initialValue={{this.initialValue}} as |await|>
-            {{await.status}}
-
-            <await.Initial>
-              Initial
-            </await.Initial>
-
-            <await.Pending>
-              Pending
-            </await.Pending>
-
-            <await.Fulfilled as |value|>
-              Value: {{value}}
-            </await.Fulfilled>
-
-            <await.Rejected as |error|>
-              Error: {{error.message}}
-            </await.Rejected>
-          </Await>
-        `);
-
-        assert.dom().hasText('fulfilled Value: initialValue');
-      });
-
-      test('state is rejected and error is equal to initialValue if initialValue is Error', async function(assert) {
-        this.promise = () => resolve();
-        this.initialValue = new Error('initialValue');
-
-        await render(hbs`
-          <Await @promise={{this.promise}} @initialValue={{this.initialValue}} as |await|>
-            {{await.status}}
-
-            <await.Initial>
-              Initial
-            </await.Initial>
-
-            <await.Pending>
-              Pending
-            </await.Pending>
-
-            <await.Fulfilled as |value|>
-              Value: {{value}}
-            </await.Fulfilled>
-
-            <await.Rejected as |error|>
-              Error: {{error.message}}
-            </await.Rejected>
-          </Await>
-        `);
-
-        assert.dom().hasText('rejected Error: initialValue');
-      });
-    });
-
-    module('callbacks', function() {
-      test('calls onCancel', async function(assert) {
-        this.promise = new FakePromise();
-        this.onCancel = sinon.spy();
-
-        await render(hbs`
-          <Await @promise={{this.promise}} @onCancel={{this.onCancel}} as |await|>
-            <button {{on "click" await.cancel}}>cancel</button>
-          </Await>
-        `);
-
-        assert.ok(this.onCancel.notCalled);
-
-        await click('button');
-
-        await settled();
-
-        assert.ok(this.onCancel.calledOnce);
-      });
-
-      test('calls onResolve', async function(assert) {
-        this.promise = new FakePromise();
-        this.onResolve = sinon.spy();
-
-        await render(hbs`
-          <Await @promise={{this.promise}} @onResolve={{this.onResolve}} />
-        `);
-
-        assert.ok(this.onResolve.notCalled);
-
-        this.promise.resolve('works');
-
-        await settled();
-
-        assert.ok(this.onResolve.withArgs('works').calledOnce);
-      });
-
-      test('calls onReject', async function(assert) {
-        this.promise = new FakePromise();
-        this.onReject = sinon.spy();
-
-        await render(hbs`
-          <Await @promise={{this.promise}} @onReject={{this.onReject}} />
-        `);
-
-        assert.ok(this.onReject.notCalled);
-
-        setupOnerror(() => {});
-        this.promise.reject(new Error('error'));
-
-        await settled();
-
-        assert.ok(this.onReject.calledOnce);
-        assert.equal(this.onReject.firstCall.args[0].message, 'error');
-      });
     });
   });
 });

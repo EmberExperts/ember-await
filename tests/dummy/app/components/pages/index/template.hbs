@@ -1,0 +1,26 @@
+<Await @promise={{this.fetchPosts}} as |await|>
+  <button type="button" disabled={{await.isPending}} {{on "click" await.reload}}>Refresh</button>
+
+  {{#if await.isPending}}
+    <span class="spinner" />
+  {{/if}}
+
+  Last updated: {{await.finishedAt}}
+  <hr>
+
+  <await.Pending @initial={{true}}>
+    <div class="spinner"></div>
+    Loading posts...
+  </await.Pending>
+
+  <await.Fulfilled @persist={{true}} as |posts|>
+    {{#each posts as |post|}}
+      <h1>{{post.title}}</h1>
+      <p>{{post.body}}</p>
+    {{/each}}
+  </await.Fulfilled>
+
+  <await.Rejected @persist={{true}} as |error|>
+    Error: {{error.message}}
+  </await.Rejected>
+</Await>
