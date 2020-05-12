@@ -11,7 +11,7 @@ These can be passed to `<Await />` component.
 
 ## `promise`
 
-> `Promise | function(): Promise`
+> `Promise | function(controller: AbortController): Promise`
 
 A Promise instance which has already started or a function that returns a promise Changing the value of `promise` will cancel any pending promise and listen to the new one. The promise function is automatically invoked during component construction. If `promise` is initially undefined, the Ember Await state will be `pending`.
 
@@ -19,7 +19,7 @@ A Promise instance which has already started or a function that returns a promis
 
 ## `defer`
 
-> `function(...args): Promise`
+> `function(args: any[], controller: AbortController): Promise`
 
 A function that returns a promise. This is invoked only by manually calling `run(...args)`. The `defer` is commonly used to send data to the server following a user action, such as submitting a form. You can use this in conjunction with `promise` to fill the form with existing data, then updating it on submit with `defer`.
 

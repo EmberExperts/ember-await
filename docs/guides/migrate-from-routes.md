@@ -83,7 +83,9 @@ We gonna create 3 files:
 
 ### PostsList component
 
-Here we define `fetchPosts` which looks identically to previous `model()` hook. In this case it is a function, however it can be a getter or just a property.
+Here we define `fetchPosts` which looks almost identically to previous `model()` hook. In this case it is a function, however it can be a getter or just a property.
+
+In this case the `fetchPosts` recieves an [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) which allows you (or the request maker) to watch when Ember Await has aborted the request. As we are using `fetch` we are passing the `signal` to it, so it can abort the request when needed. This will optimize your data fetching and ensure there is always one pending request at the time.
 
 ```js
 // app/components/posts-list.js
@@ -93,8 +95,8 @@ import { action } from '@ember/object';
 
 class PostsComponent extends Component {
   @action
-  async fetchPosts() {
-    const response = await fetch('/posts');
+  async fetchPosts(abortController) {
+    const response = await fetch('/posts', { signal: abortController.signal });
     return response.json();
   }
 }

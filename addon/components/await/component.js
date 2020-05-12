@@ -140,18 +140,34 @@ class AwaitComponent extends Component {
   }
 
   @task({ restartable: true, evented: true })
-  *promiseTask(promise, ...args) {
-    return yield isFunction(promise) ? promise(...args) : promise;
+  *promiseTask(value) {
+    const controller = new AbortController();
+    const promiseFn = isFunction(value) ? value : () => value;
+
+    try {
+      return yield promiseFn(controller);
+    } finally {
+      controller.abort();
+    }
+  }
+
+  @task({ drop: true })
+  *deferTask(value, args = []) {
+    const deferFn = isFunction(value) ? value : () => value;
+
+    return yield this.promiseTask.perform((controller) => deferFn(args, controller));
   }
 
   @action
   run(...args) {
-    this.promiseTask.perform(this.args.defer, ...args);
+    if (isDefined(this.args.defer)) {
+      return this.deferTask.perform(this.args.defer, args);
+    }
   }
 
   @action
   reload() {
-    this._resolvePromise();
+    return this._resolvePromise();
   }
 
   @action

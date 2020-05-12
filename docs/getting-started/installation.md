@@ -11,3 +11,4 @@ ember install ember-await
 * Ember.js v3.16 or above
 * Ember CLI v2.13 or above
 * Node.js v10 or above
+* Evergreen browsers (IE11 not supported)
