@@ -1,5 +1,6 @@
 'use strict';
 
 module.exports = {
-  extends: 'octane'
+  extends: 'octane',
+  ignore: ['tests/**']
 };
