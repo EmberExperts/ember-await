@@ -1,0 +1,28 @@
+<Await @promise={{this.post}} as |await|>
+  <input type="number" {{on "change" this.setPostId}} />
+
+  <button type="button" disabled={{await.isPending}} {{on "click" await.reload}}>Refresh</button>
+
+  {{#if await.isPending}}
+    <span class="spinner" />
+  {{/if}}
+
+  Last updated: {{await.finishedAt}}
+  <hr>
+
+  <await.Pending>
+    <div>
+      <div class="spinner"></div>
+      Loading post...
+    </div>
+  </await.Pending>
+
+  <await.Rejected as |error|>
+    <b>Error: {{error.message}}</b>
+  </await.Rejected>
+
+  <await.Fulfilled @persist={{true}} as |post|>
+    <h1>{{post.title}}</h1>
+    <p>{{post.body}}</p>
+  </await.Fulfilled>
+</Await>
