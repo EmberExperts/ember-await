@@ -11,4 +11,5 @@ export default class Router extends EmberRouter {
 Router.map(function() {
   this.route('default');
   this.route('with-getter');
+  this.route('defer');
 });

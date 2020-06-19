@@ -1,0 +1,9 @@
+<Await @defer={{this.clickAction}} @onResolve={{this.successAlert}} @onReject={{this.errorAlert}} as |await|>
+  <button type="button" disabled={{await.isPending}} {{on "click" await.run}}>
+    {{#if await.isPending}}
+      Updating...
+    {{else}}
+      Update
+    {{/if}}
+  </button>
+</Await>
