@@ -3,14 +3,14 @@
 
   <button type="button" disabled={{await.isPending}} {{on "click" await.reload}}>Refresh</button>
 
-  {{#if await.isPending}}
+  <await.Pending>
     <span class="spinner" />
-  {{/if}}
+  </await.Pending>
 
   Last updated: {{await.finishedAt}}
   <hr>
 
-  <await.Pending>
+  <await.Pending @initial={{true}}>
     <div>
       <div class="spinner"></div>
       Loading post...
