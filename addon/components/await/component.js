@@ -5,6 +5,7 @@ import { tracked } from '@glimmer/tracking';
 import { computed, action } from '@ember/object';
 import { task } from 'ember-concurrency-decorators';
 import { addObserver, removeObserver } from '@ember/object/observers';
+import { inject as service } from '@ember/service';
 
 function isFunction(fn) {
   return typeof fn === 'function';
@@ -19,11 +20,17 @@ function isDefined(value) {
 }
 
 class AwaitComponent extends Component {
+  @service fastboot;
+
   @tracked startedAt;
 
   @tracked finishedAt;
 
   @tracked lastFinished;
+
+  get isFastBoot() {
+    return this.fastboot && this.fastboot.isFastBoot;
+  }
 
   @computed('promiseTask.performCount')
   get counter() {
@@ -152,7 +159,7 @@ class AwaitComponent extends Component {
   }
 
   @task({ drop: true })
-  *deferTask(value, args = []) {
+  *runTask(value, args = []) {
     const deferFn = isFunction(value) ? value : () => value;
 
     return yield this.promiseTask.perform((controller) => deferFn(args, controller));
@@ -161,7 +168,7 @@ class AwaitComponent extends Component {
   @action
   run(...args) {
     if (isDefined(this.args.defer)) {
-      return this.deferTask.perform(this.args.defer, args);
+      return this.runTask.perform(this.args.defer, args);
     }
   }
 
@@ -176,6 +183,8 @@ class AwaitComponent extends Component {
   }
 
   _resolvePromise() {
+    if (this.isFastBoot) return;
+
     return this.promiseTask.perform(this.args.promise);
   }
 }
