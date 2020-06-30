@@ -124,7 +124,7 @@ Runs the `defer`, passing any arguments provided as an array.
 
 > `function(): TaskInstance`
 
-Re-runs the promise when invoked, using the previous arguments.
+Re-runs the promise when invoked.
 
 ## `cancel`
 
