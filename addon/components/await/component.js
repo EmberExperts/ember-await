@@ -174,7 +174,7 @@ class AwaitComponent extends Component {
 
   @action
   reload() {
-    return this._resolvePromise();
+    return this.promiseTask.perform(this.args.promise);
   }
 
   @action

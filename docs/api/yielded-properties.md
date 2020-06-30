@@ -116,13 +116,13 @@ throw an exception and crash if the task rejects.
 
 ## `run`
 
-> `function(...args: any[]): void`
+> `function(...args: any[]): TaskInstance`
 
 Runs the `defer`, passing any arguments provided as an array.
 
 ## `reload`
 
-> `function(): void`
+> `function(): TaskInstance`
 
 Re-runs the promise when invoked, using the previous arguments.
 
