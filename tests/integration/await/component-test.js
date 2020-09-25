@@ -5,6 +5,7 @@ import { hbs } from 'ember-cli-htmlbars';
 import { Promise, resolve, reject } from 'rsvp';
 import { set } from '@ember/object';
 import sinon from 'sinon';
+import { AbortController } from 'fetch';
 
 const resolveIn = (ms, value) => new Promise((r) => setTimeout(r, ms, value));
 const rejectIn = (ms, value) => new Promise((_r, r) => setTimeout(r, ms, value));
@@ -436,17 +437,17 @@ module('Integration | Component | await', function(hooks) {
       });
     });
 
-    module('task', function() {
-      test('yields current task', async function(assert) {
+    module('query', function() {
+      test('yields query', async function(assert) {
         set(this, 'promise', resolve());
 
         await render(hbs`
           <Await @promise={{this.promise}} as |await|>
-            {{if await.task.isSuccessful "isSuccessful"}}
+            {{if await.query.isResolved "isResolved"}}
           </Await>
         `);
 
-        assert.dom().hasText('isSuccessful');
+        assert.dom().hasText('isResolved');
       });
     });
 

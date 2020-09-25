@@ -117,7 +117,7 @@ class Query {
 
     const { initialValue } = this.options;
 
-    return 'initialValue' in this.options && !(initialValue instanceof Error);
+    return initialValue !== undefined && !(initialValue instanceof Error);
   }
 
   /**
@@ -143,7 +143,7 @@ class Query {
 
     const { initialValue } = this.options;
 
-    return 'initialValue' in this.options && initialValue instanceof Error;
+    return initialValue !== undefined && initialValue instanceof Error;
   }
 
   /**
@@ -212,15 +212,29 @@ class Query {
   }
 
   /**
-   * Current task
+   * Internal Query Promise
    *
-   * @public
+   * @private
    * @readonly
    * @memberof Query
    */
-  @computed('_promiseTask.last')
-  get task() {
-    return this._promiseTask.last;
+  @computed('_promiseTask.last', 'isRejected', 'data', 'error')
+  get _promise() {
+    return new Promise((resolve, reject) => {
+      if (this._promiseTask.last) {
+        return this._promiseTask.last.then((data) => resolve(data), () => {
+          if (this.isRejected) {
+            reject(this.error);
+          } else {
+            resolve(this.data);
+          }
+        });
+      }
+
+      if (this.isRejected) return reject(this.error);
+
+      resolve(this.data);
+    });
   }
 
   constructor(options = {}) {
@@ -229,6 +243,18 @@ class Query {
     if (this.options.promise && !('initialValue' in this.options)) {
       this.run(this.options.promise);
     }
+  }
+
+  then(onfulfilled, onrejected) {
+    return this._promise.then(onfulfilled, onrejected);
+  }
+
+  catch(onrejected) {
+    return this._promise.catch(onrejected);
+  }
+
+  finally(onfinally) {
+    return this._promise.finally(onfinally);
   }
 
   /**
@@ -260,19 +286,21 @@ class Query {
    *
    * @public
    * @param {any} value
-   * @returns {TaskInstance}
+   * @returns {Query}
    * @memberof AwaitComponent
    */
   @action
   run(value) {
-    return this._promiseTask.perform(value);
+    this._promiseTask.perform(value);
+
+    return this;
   }
 
   /**
    * Re-runs the `_promiseTask` when invoked.
    *
    * @public
-   * @returns {TaskInstance}
+   * @returns {Query}
    * @memberof AwaitComponent
    */
   @action

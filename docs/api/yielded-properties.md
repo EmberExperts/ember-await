@@ -15,7 +15,7 @@ These are yielded properties by `<Await />` component:
 - [`isRejected`](#isrejected) true when the last promise was rejected.
 - [`isSettled`](#issettled) true when the last promise was fulfilled or rejected \(not initial or pending\).
 - [`counter`](#counter) The number of times a promise was started.
-- [`task`](#task) A reference to the internal wrapper task, which can be chained on.
+- [`query`](#query) An reference to the internal Query wrapper, which can be chained on.
 - [`run`](#run) Invokes the `defer`.
 - [`reload`](#reload) Re-runs the promise when invoked.
 - [`cancel`](#cancel) Cancel any pending promise.
@@ -103,26 +103,24 @@ Alias: `isResolved`
 
 The number of times a promise was started.
 
-## `task`
+## `query`
 
-> `Task`
+> `Query`
 
-A reference to the internal wrapper task (ember-concurrency) created when starting a new promise \(either automatically or by invoking
-`run` / `reload`\). It fulfills or rejects along with the provided `promise` / `defer`. Useful as a
-chainable alternative to the `onResolve` / `onReject` callbacks.
+A reference to the internal wrapper `Query` created when initializing the component.
+It contains all the internal API, exposed as public by this component. More about Query, soon.
 
-Warning! If you chain on `task`, you MUST provide a rejection handler \(e.g. `.catch(...)`\). Otherwise Ember will
-throw an exception and crash if the task rejects.
+Useful as a chainable alternative to the `onResolve` / `onReject` callbacks.
 
 ## `run`
 
-> `function(...args: any[]): TaskInstance`
+> `function(...args: any[]): Query`
 
 Runs the `defer`, passing any arguments provided as an array.
 
 ## `reload`
 
-> `function(): TaskInstance`
+> `function(): Query`
 
 Re-runs the promise when invoked.
 

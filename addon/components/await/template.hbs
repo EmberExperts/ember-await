@@ -4,6 +4,8 @@
   value=this.query.value
   initialValue=@initialValue
 
+  query=this.query
+  counter=this.query.counter
   startedAt=this.query.startedAt
   finishedAt=this.query.finishedAt
 
@@ -16,11 +18,9 @@
   isSettled=this.query.isSettled
   isInitial=this.query.isInitial
 
-  counter=this.query.counter
-  task=this.query.task
+  run=this.run
   reload=this.query.reload
   cancel=this.query.cancel
-  run=this.run
 
   Pending=(component "await/pending" shouldRender=this.query.isPending value=this.query.value)
   Loading=(component "await/pending" shouldRender=this.query.isPending value=this.query.value)

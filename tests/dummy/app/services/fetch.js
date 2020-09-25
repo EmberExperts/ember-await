@@ -1,4 +1,5 @@
 import Service from '@ember/service';
+import fetch from 'fetch';
 
 class FetchService extends Service {
   async request(url, options) {

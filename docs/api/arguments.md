@@ -31,7 +31,7 @@ A function that returns a promise. This is invoked only by manually calling `run
 
 Initial state for `data` or `error` \(if instance of Error\); useful for server-side rendering. When an `initialValue` is provided, the `promise` will not be invoked on first render if it is a function. Instead, `status` will be immediately set to `fulfilled` or `rejected` and your components will render accordingly. If you want to trigger the `promise` regardless, you can call `reload()`.
 
-> Note that `onResolve` or `onReject` is not invoked in this case and no `task` property will be created.
+> Note that `onResolve` or `onReject` is not invoked in this case.
 
 ## `onResolve`
 
