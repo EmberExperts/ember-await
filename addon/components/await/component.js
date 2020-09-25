@@ -32,6 +32,7 @@ class AwaitComponent extends Component {
     super.willDestroy(...arguments);
 
     removeObserver(this, 'args.promise', this.query.reload);
+    this.query.cancel();
   }
 
   @task({ drop: true })
