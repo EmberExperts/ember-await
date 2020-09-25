@@ -1,32 +1,32 @@
 {{yield (hash
-  data=this.data
-  error=this.error
-  value=this.value
+  data=this.query.data
+  error=this.query.error
+  value=this.query.value
   initialValue=@initialValue
 
-  startedAt=this.startedAt
-  finishedAt=this.finishedAt
+  startedAt=this.query.startedAt
+  finishedAt=this.query.finishedAt
 
-  status=this.status
-  isPending=this.isPending
-  isLoading=this.isPending
-  isFulfilled=this.isFulfilled
-  isResolved=this.isFulfilled
-  isRejected=this.isRejected
-  isSettled=this.isSettled
-  isInitial=this.isInitial
+  status=this.query.status
+  isPending=this.query.isPending
+  isLoading=this.query.isPending
+  isFulfilled=this.query.isFulfilled
+  isResolved=this.query.isFulfilled
+  isRejected=this.query.isRejected
+  isSettled=this.query.isSettled
+  isInitial=this.query.isInitial
 
-  counter=this.counter
-  task=this.promiseTask.last
-  reload=this.reload
-  cancel=this.cancel
+  counter=this.query.counter
+  task=this.query.task
+  reload=this.query.reload
+  cancel=this.query.cancel
   run=this.run
 
-  Pending=(component "await/pending" shouldRender=this.isPending value=this.value)
-  Loading=(component "await/pending" shouldRender=this.isPending value=this.value)
-  Fulfilled=(component "await/complete" shouldRender=this.isFulfilled value=this.data)
-  Resolved=(component "await/complete" shouldRender=this.isFulfilled value=this.data)
-  Rejected=(component "await/complete" shouldRender=this.isRejected value=this.error)
-  Settled=(component "await/complete" shouldRender=this.isSettled value=this.value)
-  Initial=(component "await/initial" shouldRender=this.isInitial value=this.data)
+  Pending=(component "await/pending" shouldRender=this.query.isPending value=this.query.value)
+  Loading=(component "await/pending" shouldRender=this.query.isPending value=this.query.value)
+  Fulfilled=(component "await/complete" shouldRender=this.query.isFulfilled value=this.query.data)
+  Resolved=(component "await/complete" shouldRender=this.query.isFulfilled value=this.query.data)
+  Rejected=(component "await/complete" shouldRender=this.query.isRejected value=this.query.error)
+  Settled=(component "await/complete" shouldRender=this.query.isSettled value=this.query.value)
+  Initial=(component "await/initial" shouldRender=this.query.isInitial value=this.query.data)
 )}}
