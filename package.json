@@ -24,11 +24,11 @@
     "release": "release-it"
   },
   "dependencies": {
-    "@glimmer/component": "^1.0.1",
-    "@glimmer/tracking": "^1.0.1",
+    "@glimmer/component": "^1.0.2",
+    "@glimmer/tracking": "^1.0.2",
     "ember-cli-babel": "^7.22.1",
     "ember-cli-htmlbars": "^5.3.1",
-    "ember-concurrency": "^1.2.1",
+    "ember-concurrency": "^1.3.0",
     "ember-concurrency-decorators": "^2.0.1"
   },
   "peerDependencies": {
@@ -40,12 +40,12 @@
     "babel-eslint": "^10.1.0",
     "broccoli-asset-rev": "^3.0.0",
     "ember-auto-import": "^1.6.0",
-    "ember-cli": "~3.21.0",
+    "ember-cli": "~3.21.2",
     "ember-cli-dependency-checker": "^3.2.0",
     "ember-cli-fastboot": "^2.2.3",
     "ember-cli-inject-live-reload": "^2.0.2",
     "ember-cli-sri": "^2.1.1",
-    "ember-cli-uglify": "^3.0.0",
+    "ember-cli-terser": "^4.0.0",
     "ember-disable-prototype-extensions": "^1.1.3",
     "ember-export-application-global": "^2.0.1",
     "ember-fetch": "^8.0.2",
@@ -56,14 +56,14 @@
     "ember-sinon-qunit": "^5.0.0",
     "ember-source": "~3.21.1",
     "ember-source-channel-url": "^3.0.0",
-    "ember-template-lint": "^2.11.0",
+    "ember-template-lint": "^2.12.1",
     "ember-try": "^1.4.0",
-    "eslint": "^7.7.0",
+    "eslint": "^7.9.0",
     "eslint-plugin-zero-config": "^2.1.2",
     "loader.js": "^4.7.0",
     "npm-run-all": "^4.1.5",
-    "qunit-dom": "^1.4.0",
-    "release-it": "^13.7.0"
+    "qunit-dom": "^1.5.0",
+    "release-it": "^14.0.3"
   },
   "engines": {
     "node": "10.* || >= 12"
